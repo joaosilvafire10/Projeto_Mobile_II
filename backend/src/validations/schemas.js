@@ -1,0 +1,165 @@
+const { z } = require("zod");
+
+// =============================================
+// SCHEMAS DE AUTENTICAÇÃO
+// =============================================
+
+const registerSchema = z.object({
+  name: z
+    .string({ required_error: "Nome é obrigatório." })
+    .min(3, "Nome deve ter pelo menos 3 caracteres.")
+    .max(100, "Nome deve ter no máximo 100 caracteres."),
+  email: z
+    .string({ required_error: "Email é obrigatório." })
+    .email("Email inválido."),
+  password: z
+    .string({ required_error: "Senha é obrigatória." })
+    .min(6, "Senha deve ter pelo menos 6 caracteres.")
+    .max(100, "Senha deve ter no máximo 100 caracteres."),
+  role: z
+    .enum(["ADMIN", "TECNICO", "USUARIO"], {
+      errorMap: () => ({ message: "Role deve ser ADMIN, TECNICO ou USUARIO." }),
+    })
+    .optional()
+    .default("USUARIO"),
+  department: z
+    .enum(
+      ["TI", "SUPORTE", "INFRAESTRUTURA", "DESENVOLVIMENTO", "SEGURANCA", "REDES", "BANCO_DE_DADOS", "GERAL"],
+      { errorMap: () => ({ message: "Departamento inválido." }) }
+    )
+    .optional()
+    .default("GERAL"),
+});
+
+const loginSchema = z.object({
+  email: z
+    .string({ required_error: "Email é obrigatório." })
+    .email("Email inválido."),
+  password: z
+    .string({ required_error: "Senha é obrigatória." })
+    .min(1, "Senha é obrigatória."),
+});
+
+// =============================================
+// SCHEMAS DE USUÁRIO
+// =============================================
+
+const updateUserSchema = z.object({
+  name: z.string().min(3).max(100).optional(),
+  email: z.string().email("Email inválido.").optional(),
+  role: z
+    .enum(["ADMIN", "TECNICO", "USUARIO"])
+    .optional(),
+  department: z
+    .enum(["TI", "SUPORTE", "INFRAESTRUTURA", "DESENVOLVIMENTO", "SEGURANCA", "REDES", "BANCO_DE_DADOS", "GERAL"])
+    .optional(),
+  avatarUrl: z.string().url("URL inválida.").nullable().optional(),
+  active: z.boolean().optional(),
+});
+
+// =============================================
+// SCHEMAS DE CHAMADO (TICKET)
+// =============================================
+
+const createTicketSchema = z.object({
+  title: z
+    .string({ required_error: "Título é obrigatório." })
+    .min(5, "Título deve ter pelo menos 5 caracteres.")
+    .max(200, "Título deve ter no máximo 200 caracteres."),
+  description: z
+    .string({ required_error: "Descrição é obrigatória." })
+    .min(10, "Descrição deve ter pelo menos 10 caracteres.")
+    .max(5000, "Descrição deve ter no máximo 5000 caracteres."),
+  priority: z
+    .enum(["BAIXA", "MEDIA", "ALTA", "CRITICA"], {
+      errorMap: () => ({ message: "Prioridade deve ser BAIXA, MEDIA, ALTA ou CRITICA." }),
+    })
+    .optional()
+    .default("MEDIA"),
+  department: z
+    .enum(
+      ["TI", "SUPORTE", "INFRAESTRUTURA", "DESENVOLVIMENTO", "SEGURANCA", "REDES", "BANCO_DE_DADOS", "GERAL"],
+      { errorMap: () => ({ message: "Departamento inválido." }) }
+    )
+    .optional()
+    .default("GERAL"),
+});
+
+const updateTicketSchema = z.object({
+  title: z.string().min(5).max(200).optional(),
+  description: z.string().min(10).max(5000).optional(),
+  status: z
+    .enum(["ABERTO", "EM_ANDAMENTO", "AGUARDANDO_USUARIO", "RESOLVIDO", "FINALIZADO"])
+    .optional(),
+  priority: z
+    .enum(["BAIXA", "MEDIA", "ALTA", "CRITICA"])
+    .optional(),
+  department: z
+    .enum(["TI", "SUPORTE", "INFRAESTRUTURA", "DESENVOLVIMENTO", "SEGURANCA", "REDES", "BANCO_DE_DADOS", "GERAL"])
+    .optional(),
+  aiSummary: z.string().max(5000).nullable().optional(),
+});
+
+const ticketQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(10),
+  status: z
+    .enum(["ABERTO", "EM_ANDAMENTO", "AGUARDANDO_USUARIO", "RESOLVIDO", "FINALIZADO"])
+    .optional(),
+  priority: z
+    .enum(["BAIXA", "MEDIA", "ALTA", "CRITICA"])
+    .optional(),
+  department: z
+    .enum(["TI", "SUPORTE", "INFRAESTRUTURA", "DESENVOLVIMENTO", "SEGURANCA", "REDES", "BANCO_DE_DADOS", "GERAL"])
+    .optional(),
+  search: z.string().optional(),
+});
+
+// =============================================
+// SCHEMAS DE MENSAGEM
+// =============================================
+
+const createMessageSchema = z.object({
+  content: z
+    .string({ required_error: "Conteúdo é obrigatório." })
+    .min(1, "Conteúdo não pode ser vazio.")
+    .max(5000, "Conteúdo deve ter no máximo 5000 caracteres."),
+  sender: z
+    .enum(["user", "ai", "system"], {
+      errorMap: () => ({ message: "Sender deve ser user, ai ou system." }),
+    })
+    .optional()
+    .default("user"),
+});
+
+// =============================================
+// SCHEMAS DA IA
+// =============================================
+
+const aiTriageSchema = z.object({
+  message: z
+    .string({ required_error: "Mensagem é obrigatória." })
+    .min(1, "Mensagem não pode ser vazia.")
+    .max(5000, "Mensagem deve ter no máximo 5000 caracteres."),
+  conversationHistory: z
+    .array(
+      z.object({
+        role: z.enum(["user", "ai"]),
+        content: z.string(),
+      })
+    )
+    .optional()
+    .default([]),
+  ticketId: z.string().uuid().optional(),
+});
+
+module.exports = {
+  registerSchema,
+  loginSchema,
+  updateUserSchema,
+  createTicketSchema,
+  updateTicketSchema,
+  ticketQuerySchema,
+  createMessageSchema,
+  aiTriageSchema,
+};
