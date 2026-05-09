@@ -6,7 +6,7 @@ const startServer = async () => {
   try {
     // Testar conexão com o banco de dados
     await prisma.$connect();
-    console.log("✅ Conectado ao banco de dados PostgreSQL");
+    console.log("✅ Conectado ao banco de dados SQLite");
 
     // Iniciar servidor
     app.listen(config.port, () => {

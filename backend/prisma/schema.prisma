@@ -1,49 +1,14 @@
 // Schema Prisma - Sistema de Chamados Inteligentes
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  output     = "../generated/prisma"
+  engineType = "library"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-// =============================================
-// ENUMS
-// =============================================
-
-enum Role {
-  ADMIN
-  TECNICO
-  USUARIO
-}
-
-enum TicketStatus {
-  ABERTO
-  EM_ANDAMENTO
-  AGUARDANDO_USUARIO
-  RESOLVIDO
-  FINALIZADO
-}
-
-enum TicketPriority {
-  BAIXA
-  MEDIA
-  ALTA
-  CRITICA
-}
-
-enum Department {
-  TI
-  SUPORTE
-  INFRAESTRUTURA
-  DESENVOLVIMENTO
-  SEGURANCA
-  REDES
-  BANCO_DE_DADOS
-  GERAL
 }
 
 // =============================================
@@ -55,8 +20,8 @@ model User {
   name      String
   email     String   @unique
   password  String
-  role      Role     @default(USUARIO)
-  department Department @default(GERAL)
+  role      String   @default("USUARIO")
+  department String @default("GERAL")
   avatarUrl String?  @map("avatar_url")
   active    Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
@@ -73,9 +38,9 @@ model Ticket {
   id          String        @id @default(uuid())
   title       String
   description String
-  status      TicketStatus  @default(ABERTO)
-  priority    TicketPriority @default(MEDIA)
-  department  Department    @default(GERAL)
+  status      String  @default("ABERTO")
+  priority    String @default("MEDIA")
+  department  String    @default("GERAL")
   aiSummary   String?       @map("ai_summary")
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
