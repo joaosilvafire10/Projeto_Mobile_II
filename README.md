@@ -8,7 +8,7 @@ Abra o terminal na pasta backend e rode os comandos:
 
 bash
 npm install
-npm run prisma:generate
+npm run prisma:generate 
 npm run prisma:migrate
 npm run prisma:seed
 O comando seed vai criar alguns chamados de exemplo e contas de teste (senha padrão: 123456):
