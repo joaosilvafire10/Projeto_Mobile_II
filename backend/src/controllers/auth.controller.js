@@ -48,6 +48,30 @@ class AuthController {
       next(error);
     }
   }
+
+  /**
+   * POST /api/auth/refresh
+   */
+  async refresh(req, res, next) {
+    try {
+      const { refreshToken } = req.body;
+      if (!refreshToken) {
+        return res.status(400).json({
+          success: false,
+          message: "Refresh token é obrigatório.",
+        });
+      }
+
+      const tokens = await authService.refresh(refreshToken);
+      return res.status(200).json({
+        success: true,
+        message: "Token atualizado com sucesso.",
+        data: tokens,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new AuthController();

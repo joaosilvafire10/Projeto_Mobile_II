@@ -8,6 +8,7 @@ import 'chat_screen.dart';
 import 'tickets_screen.dart';
 import 'dashboard_screen.dart';
 import 'login_screen.dart';
+import 'register_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -229,6 +230,17 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() => _currentIndex = 2);
             },
           ),
+          if (user?.role == 'ADMIN')
+            _buildDrawerItem(
+              Icons.person_add_outlined,
+              'Criar Usuário',
+              () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                );
+              },
+            ),
           const Divider(color: AppTheme.dividerColor, height: 32),
           _buildDrawerItem(
             Icons.settings_outlined,

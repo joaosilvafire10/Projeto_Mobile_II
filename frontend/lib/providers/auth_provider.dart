@@ -1,77 +1,126 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
+import '../services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   UserModel? _currentUser;
   bool _isLoading = false;
   String? _errorMessage;
+  ApiService? _apiServiceInstance;
+
+  ApiService get _apiService {
+    _apiServiceInstance ??= ApiService();
+    return _apiServiceInstance!;
+  }
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _currentUser != null;
   String? get errorMessage => _errorMessage;
 
-  // Usuários de demonstração
-  static final Map<String, Map<String, String>> _demoUsers = {
-    'admin@empresa.com': {
-      'password': 'admin123',
-      'name': 'Administrador',
-      'department': 'TI',
-      'role': 'admin',
-    },
-    'joao@empresa.com': {
-      'password': '123456',
-      'name': 'João Silva',
-      'department': 'Financeiro',
-      'role': 'user',
-    },
-    'maria@empresa.com': {
-      'password': '123456',
-      'name': 'Maria Santos',
-      'department': 'RH',
-      'role': 'user',
-    },
-    'pedro@empresa.com': {
-      'password': '123456',
-      'name': 'Pedro Costa',
-      'department': 'Comercial',
-      'role': 'user',
-    },
-  };
+  AuthProvider() {
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    if (token != null) {
+      try {
+        final response = await _apiService.dio.get('/auth/me');
+        if (response.statusCode == 200) {
+          _currentUser = UserModel.fromMap(response.data['data']);
+          notifyListeners();
+        }
+      } catch (e) {
+        // Token might be invalid or expired
+        await logout();
+      }
+    }
+  }
 
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
-    // Simula delay de autenticação
-    await Future.delayed(const Duration(milliseconds: 1500));
+    try {
+      final response = await _apiService.dio.post('/auth/login', data: {
+        'email': email,
+        'password': password,
+      });
 
-    final userInfo = _demoUsers[email.toLowerCase().trim()];
-
-    if (userInfo == null || userInfo['password'] != password) {
-      _isLoading = false;
-      _errorMessage = 'E-mail ou senha incorretos';
-      notifyListeners();
-      return false;
+      if (response.statusCode == 200) {
+        final data = response.data['data'];
+        final prefs = await SharedPreferences.getInstance();
+        
+        await prefs.setString('accessToken', data['tokens']['accessToken']);
+        await prefs.setString('refreshToken', data['tokens']['refreshToken']);
+        
+        _currentUser = UserModel.fromMap(data['user']);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      if (e is DioException && e.response != null) {
+        _errorMessage = e.response?.data['message'] ?? 'Erro ao realizar login';
+      } else {
+        _errorMessage = 'Erro de conexão com o servidor';
+      }
     }
-
-    _currentUser = UserModel(
-      id: email.hashCode.toString(),
-      name: userInfo['name']!,
-      email: email.toLowerCase().trim(),
-      department: userInfo['department']!,
-      role: userInfo['role']!,
-    );
 
     _isLoading = false;
     notifyListeners();
-    return true;
+    return false;
   }
 
-  void logout() {
+  Future<bool> register({
+    required String name,
+    required String email,
+    required String password,
+    String? role,
+    String? department,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.dio.post('/auth/register', data: {
+        'name': name,
+        'email': email,
+        'password': password,
+        'role': role,
+        'department': department,
+      });
+
+      if (response.statusCode == 201) {
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      if (e is DioException && e.response != null) {
+        _errorMessage = e.response?.data['message'] ?? 'Erro ao registrar usuário';
+      } else {
+        _errorMessage = 'Erro de conexão com o servidor';
+      }
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
+  Future<void> logout() async {
     _currentUser = null;
     _errorMessage = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('accessToken');
+    await prefs.remove('refreshToken');
     notifyListeners();
   }
 

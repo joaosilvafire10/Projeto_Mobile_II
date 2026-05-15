@@ -38,7 +38,15 @@ class _TicketsScreenState extends State<TicketsScreen> with SingleTickerProvider
       appBar: AppBar(
         title: const Text('Meus Chamados'),
         leading: Builder(
-          builder: (ctx) => IconButton(icon: const Icon(Icons.menu_rounded), onPressed: () => Scaffold.of(ctx).openDrawer()),
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            onPressed: () {
+              final scaffold = Scaffold.maybeOf(context);
+              if (scaffold != null && scaffold.hasDrawer) {
+                scaffold.openDrawer();
+              }
+            },
+          ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),
