@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const authController = require("../controllers/auth.controller");
 const validate = require("../middlewares/validate.middleware");
-const { authMiddleware } = require("../middlewares/auth.middleware");
+const { authMiddleware, authorizeRoles } = require("../middlewares/auth.middleware");
 const { registerSchema, loginSchema } = require("../validations/schemas");
 
 const router = Router();
@@ -19,7 +19,8 @@ const router = Router();
  *   post:
  *     summary: Registrar novo usuário
  *     tags: [Autenticação]
- *     security: []
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -79,7 +80,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/register", validate(registerSchema), authController.register);
+router.post("/register", authMiddleware, authorizeRoles("ADMIN"), validate(registerSchema), authController.register);
 
 /**
  * @swagger
@@ -156,5 +157,6 @@ router.post("/login", validate(loginSchema), authController.login);
  *         description: Não autenticado
  */
 router.get("/me", authMiddleware, authController.me);
+router.post("/refresh", authController.refresh);
 
 module.exports = router;

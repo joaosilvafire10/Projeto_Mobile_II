@@ -24,6 +24,7 @@ model User {
   department String @default("GERAL")
   avatarUrl String?  @map("avatar_url")
   active    Boolean  @default(true)
+  refreshToken String?  @map("refresh_token")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

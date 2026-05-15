@@ -28,10 +28,15 @@ class AuthService {
       department,
     });
 
-    // Gerar token
-    const token = this._generateToken(user);
+    // Gerar tokens
+    const tokens = this._generateTokens(user);
 
-    return { user, token };
+    // Salvar refresh token no banco
+    await userRepository.update(user.id, {
+      refreshToken: tokens.refreshToken,
+    });
+
+    return { user, tokens };
   }
 
   /**
@@ -60,20 +65,59 @@ class AuthService {
       throw error;
     }
 
-    // Gerar token
-    const token = this._generateToken(user);
+    // Gerar tokens
+    const tokens = this._generateTokens(user);
+
+    // Salvar refresh token no banco
+    await userRepository.update(user.id, {
+      refreshToken: tokens.refreshToken,
+    });
 
     // Remover senha do retorno
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _, refreshToken: __, ...userWithoutPassword } = user;
 
-    return { user: userWithoutPassword, token };
+    return { user: userWithoutPassword, tokens };
   }
 
   /**
-   * Gera um token JWT.
+   * Atualiza o token de acesso usando um refresh token.
    */
-  _generateToken(user) {
-    return jwt.sign(
+  async refresh(refreshToken) {
+    try {
+      // Verificar se o token é válido
+      const payload = jwt.verify(refreshToken, config.jwt.refreshSecret);
+
+      // Buscar usuário no banco
+      const user = await userRepository.findByEmail(payload.email);
+      if (!user || user.refreshToken !== refreshToken) {
+        const error = new Error("Refresh token inválido ou expirado.");
+        error.statusCode = 401;
+        throw error;
+      }
+
+      // Gerar novos tokens
+      const tokens = this._generateTokens(user);
+
+      // Atualizar refresh token no banco
+      await userRepository.update(user.id, {
+        refreshToken: tokens.refreshToken,
+      });
+
+      return tokens;
+    } catch (error) {
+      if (!error.statusCode) {
+        error.statusCode = 401;
+        error.message = "Refresh token inválido ou expirado.";
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Gera tokens de acesso e refresh.
+   */
+  _generateTokens(user) {
+    const accessToken = jwt.sign(
       {
         id: user.id,
         email: user.email,
@@ -82,6 +126,14 @@ class AuthService {
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn }
     );
+
+    const refreshToken = jwt.sign(
+      { email: user.email },
+      config.jwt.refreshSecret,
+      { expiresIn: config.jwt.refreshExpiresIn }
+    );
+
+    return { accessToken, refreshToken };
   }
 }
 

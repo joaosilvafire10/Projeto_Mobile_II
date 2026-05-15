@@ -22,7 +22,13 @@ class DashboardScreen extends StatelessWidget {
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu_rounded),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
+            onPressed: () {
+              // Abre o Drawer do Scaffold pai (HomeScreen)
+              final scaffold = Scaffold.maybeOf(context);
+              if (scaffold != null && scaffold.hasDrawer) {
+                scaffold.openDrawer();
+              }
+            },
           ),
         ),
         actions: [

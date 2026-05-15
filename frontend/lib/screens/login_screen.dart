@@ -321,55 +321,6 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                     ),
                     const SizedBox(height: 32),
-                    // Info credenciais demo
-                    FadeInUp(
-                      delay: const Duration(milliseconds: 900),
-                      duration: const Duration(milliseconds: 800),
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: AppTheme.glassCard,
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.accentCyan
-                                        .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.info_outline_rounded,
-                                    color: AppTheme.accentCyan,
-                                    size: 18,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  'Credenciais de teste',
-                                  style: GoogleFonts.inter(
-                                    color: AppTheme.accentCyan,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            _buildCredentialRow(
-                                'joao@empresa.com', '123456'),
-                            const SizedBox(height: 6),
-                            _buildCredentialRow(
-                                'maria@empresa.com', '123456'),
-                            const SizedBox(height: 6),
-                            _buildCredentialRow(
-                                'admin@empresa.com', 'admin123'),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
                   ],
                 ),
               ),
@@ -400,36 +351,6 @@ class _LoginScreenState extends State<LoginScreen>
         prefixIcon: Icon(icon, color: AppTheme.textMuted, size: 22),
         suffixIcon: suffixIcon,
       ),
-    );
-  }
-
-  Widget _buildCredentialRow(String email, String password) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            email,
-            style: GoogleFonts.firaCode(
-              color: AppTheme.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceElevated,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            password,
-            style: GoogleFonts.firaCode(
-              color: AppTheme.textMuted,
-              fontSize: 11,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
