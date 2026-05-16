@@ -31,19 +31,7 @@ class DashboardScreen extends StatelessWidget {
             },
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: AppTheme.accentBlue.withValues(alpha: 0.2),
-              child: Text(
-                user?.name.substring(0, 1).toUpperCase() ?? 'U',
-                style: GoogleFonts.inter(color: AppTheme.accentBlue, fontWeight: FontWeight.w700, fontSize: 14),
-              ),
-            ),
-          ),
-        ],
+
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -78,24 +66,7 @@ class DashboardScreen extends StatelessWidget {
                 Expanded(child: _statCard('Resolvidos', '${tp.resolvedTickets}', Icons.check_circle_outline_rounded, AppTheme.success)),
               ]),
             ),
-            const SizedBox(height: 28),
-            FadeInUp(
-              delay: const Duration(milliseconds: 400),
-              child: Text('Ações Rápidas', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-            ),
-            const SizedBox(height: 14),
-            FadeInUp(
-              delay: const Duration(milliseconds: 500),
-              child: _quickAction(Icons.smart_toy_rounded, 'Novo Atendimento IA',
-                  'Descreva seu problema e receba suporte inteligente', AppTheme.primaryGradient),
-            ),
-            const SizedBox(height: 12),
-            FadeInUp(
-              delay: const Duration(milliseconds: 600),
-              child: _quickAction(Icons.history_rounded, 'Histórico de Conversas',
-                  'Veja atendimentos anteriores resolvidos pela IA',
-                  const LinearGradient(colors: [AppTheme.accentPurple, AppTheme.accentPink])),
-            ),
+
             const SizedBox(height: 28),
             FadeInUp(
               delay: const Duration(milliseconds: 700),

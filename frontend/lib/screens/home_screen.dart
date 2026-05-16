@@ -108,26 +108,41 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildNewChatButton() {
+    final isSelected = _currentIndex == 1;
     return GestureDetector(
       onTap: () => setState(() => _currentIndex = 1),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: AppTheme.primaryGradient,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.accentBlue.withValues(alpha: 0.4),
-              blurRadius: 15,
-              offset: const Offset(0, 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: AppTheme.primaryGradient,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.accentBlue.withValues(alpha: 0.4),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: const Icon(
-          Icons.smart_toy_rounded,
-          color: Colors.white,
-          size: 28,
-        ),
+            child: const Icon(
+              Icons.smart_toy_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Atendimento',
+            style: GoogleFonts.inter(
+              color: isSelected ? AppTheme.accentBlue : AppTheme.textMuted,
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -156,19 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: Colors.white.withValues(alpha: 0.2),
-                  child: Text(
-                    user?.name.substring(0, 1).toUpperCase() ?? 'U',
-                    style: GoogleFonts.inter(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
+
                 Text(
                   user?.name ?? 'Usuário',
                   style: GoogleFonts.inter(
@@ -242,16 +245,6 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           const Divider(color: AppTheme.dividerColor, height: 32),
-          _buildDrawerItem(
-            Icons.settings_outlined,
-            'Configurações',
-            () => Navigator.pop(context),
-          ),
-          _buildDrawerItem(
-            Icons.help_outline_rounded,
-            'Ajuda',
-            () => Navigator.pop(context),
-          ),
           const Spacer(),
           Padding(
             padding: const EdgeInsets.all(16),
