@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/ticket_provider.dart';
+import 'providers/category_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/login_screen.dart';
 
@@ -30,6 +31,7 @@ class ChamadosInteligentesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => TicketProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
       ],
       child: MaterialApp(
         title: 'Chamados Inteligentes',

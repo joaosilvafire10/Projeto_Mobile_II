@@ -28,9 +28,36 @@ class AIService {
 
   /**
    * Prompt do sistema para o assistente de triagem.
+   * Quando categoryName e activityName são fornecidos, o escopo da IA é restrito.
    */
-  _getSystemPrompt() {
-    return `Você é um assistente inteligente de triagem de chamados de suporte técnico de TI.
+  _getSystemPrompt(categoryName, activityName) {
+    let scopeInstructions = "";
+
+    if (categoryName && activityName) {
+      scopeInstructions = `
+CONTEXTO DO ATENDIMENTO:
+O usuário selecionou a categoria "${categoryName}" e a atividade "${activityName}".
+
+IMPORTANTE - RESTRIÇÃO DE ESCOPO:
+- Você DEVE responder APENAS sobre assuntos relacionados à categoria "${categoryName}" e atividade "${activityName}".
+- Se o usuário perguntar algo que NÃO esteja relacionado a "${categoryName}" ou "${activityName}", responda educadamente que você só pode ajudar com assuntos de "${activityName}" na área de "${categoryName}".
+- NÃO responda perguntas pessoais, de entretenimento, ou de áreas que não sejam "${categoryName}".
+- Exemplo de recusa educada: "Desculpe, estou configurado para ajudá-lo apenas com assuntos de ${activityName} na área de ${categoryName}. Para outros assuntos, por favor abra um novo atendimento selecionando a categoria correta."
+`;
+    } else if (categoryName) {
+      scopeInstructions = `
+CONTEXTO DO ATENDIMENTO:
+O usuário selecionou a categoria "${categoryName}".
+
+IMPORTANTE - RESTRIÇÃO DE ESCOPO:
+- Você DEVE responder APENAS sobre assuntos relacionados à categoria "${categoryName}".
+- Se o usuário perguntar algo fora do escopo de "${categoryName}", informe educadamente que só pode ajudar com assuntos dessa categoria.
+`;
+    }
+
+    return `Você é um assistente inteligente de triagem de chamados de suporte técnico de uma empresa.
+
+${scopeInstructions}
 
 Seu papel é:
 1. CONVERSAR com o usuário de forma educada e profissional em português brasileiro.
@@ -69,12 +96,12 @@ IMPORTANTE: Só responda no formato JSON quando tiver informações suficientes 
   /**
    * Processa mensagem do usuário via Gemini ou modo simulado.
    */
-  async processMessage({ message, conversationHistory, userId, ticketId }) {
+  async processMessage({ message, conversationHistory, userId, ticketId, categoryName, activityName }) {
     try {
       let aiResponse;
 
       if (this.model) {
-        aiResponse = await this._processWithGemini(message, conversationHistory);
+        aiResponse = await this._processWithGemini(message, conversationHistory, categoryName, activityName);
       } else {
         aiResponse = this._processSimulated(message, conversationHistory);
       }
@@ -159,8 +186,8 @@ IMPORTANTE: Só responda no formato JSON quando tiver informações suficientes 
   /**
    * Processa mensagem usando Google Gemini.
    */
-  async _processWithGemini(message, conversationHistory) {
-    const systemPrompt = this._getSystemPrompt();
+  async _processWithGemini(message, conversationHistory, categoryName, activityName) {
+    const systemPrompt = this._getSystemPrompt(categoryName, activityName);
 
     // Montar histórico para o Gemini
     const contents = [];

@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../providers/ticket_provider.dart';
 import '../models/ticket_model.dart';
 import '../theme/app_theme.dart';
+import 'ticket_detail_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -93,7 +94,7 @@ class DashboardScreen extends StatelessWidget {
                 ),
               )
             else
-              ...tp.tickets.take(3).map(_ticketCard),
+              ...tp.tickets.take(3).map((t) => _ticketCard(context, t)),
           ],
         ),
       ),
@@ -140,39 +141,42 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _ticketCard(TicketModel t) {
+  Widget _ticketCard(BuildContext context, TicketModel t) {
     final (Color c, String s, IconData i) = switch (t.status) {
       TicketStatus.open => (AppTheme.accentOrange, 'Aberto', Icons.fiber_new_rounded),
       TicketStatus.inProgress => (AppTheme.accentBlue, 'Em Andamento', Icons.sync_rounded),
       TicketStatus.resolved => (AppTheme.success, 'Resolvido', Icons.check_circle_rounded),
       TicketStatus.closed => (AppTheme.textMuted, 'Fechado', Icons.archive_rounded),
     };
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(16), decoration: AppTheme.glassCard,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Expanded(child: Text(t.title, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
-              maxLines: 1, overflow: TextOverflow.ellipsis)),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: AppTheme.statusBadge(c),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(i, size: 12, color: c), const SizedBox(width: 4),
-              Text(s, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: c)),
-            ]),
-          ),
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TicketDetailScreen(ticketId: t.id))),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(16), decoration: AppTheme.glassCard,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Expanded(child: Text(t.title, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                maxLines: 1, overflow: TextOverflow.ellipsis)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: AppTheme.statusBadge(c),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(i, size: 12, color: c), const SizedBox(width: 4),
+                Text(s, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: c)),
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 8),
+          Text(t.description, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted), maxLines: 2, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 10),
+          Row(children: [
+            const Icon(Icons.folder_outlined, size: 14, color: AppTheme.textMuted), const SizedBox(width: 4),
+            Text(t.category, style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted)),
+            const SizedBox(width: 12),
+            const Icon(Icons.business_outlined, size: 14, color: AppTheme.textMuted), const SizedBox(width: 4),
+            Expanded(child: Text(t.department, style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted), overflow: TextOverflow.ellipsis)),
+          ]),
         ]),
-        const SizedBox(height: 8),
-        Text(t.description, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted), maxLines: 2, overflow: TextOverflow.ellipsis),
-        const SizedBox(height: 10),
-        Row(children: [
-          const Icon(Icons.folder_outlined, size: 14, color: AppTheme.textMuted), const SizedBox(width: 4),
-          Text(t.category, style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted)),
-          const SizedBox(width: 12),
-          const Icon(Icons.business_outlined, size: 14, color: AppTheme.textMuted), const SizedBox(width: 4),
-          Expanded(child: Text(t.department, style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted), overflow: TextOverflow.ellipsis)),
-        ]),
-      ]),
+      ),
     );
   }
 }

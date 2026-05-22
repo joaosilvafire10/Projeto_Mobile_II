@@ -49,13 +49,52 @@ model Ticket {
   // Relações
   userId    String   @map("user_id")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId String? @map("category_id")
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  activityId String? @map("activity_id")
+  activity   Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
   messages  Message[]
 
   @@index([userId])
   @@index([status])
   @@index([priority])
   @@index([department])
+  @@index([categoryId])
+  @@index([activityId])
   @@map("tickets")
+}
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  // Relações
+  activities  Activity[]
+  tickets     Ticket[]
+
+  @@map("categories")
+}
+
+model Activity {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relações
+  categoryId  String   @map("category_id")
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tickets     Ticket[]
+
+  @@unique([name, categoryId])
+  @@index([categoryId])
+  @@map("activities")
 }
 
 model Message {

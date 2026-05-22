@@ -11,6 +11,8 @@ const userRoutes = require("./routes/user.routes");
 const ticketRoutes = require("./routes/ticket.routes");
 const messageRoutes = require("./routes/message.routes");
 const aiRoutes = require("./routes/ai.routes");
+const categoryRoutes = require("./routes/category.routes");
+const activityRoutes = require("./routes/activity.routes");
 
 const app = express();
 
@@ -62,6 +64,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/tickets", messageRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/activities", activityRoutes);
 
 // =============================================
 // ROTA 404

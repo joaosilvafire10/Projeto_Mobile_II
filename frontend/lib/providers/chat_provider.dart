@@ -18,12 +18,24 @@ class ChatProvider extends ChangeNotifier {
   bool get ticketCreated => _ticketCreated;
   AIService get aiService => _aiService;
 
-  void startConversation() {
+  String? _selectedCategoryName;
+  String? _selectedActivityName;
+
+  String? get selectedCategoryName => _selectedCategoryName;
+  String? get selectedActivityName => _selectedActivityName;
+
+  void startConversation({String? categoryName, String? activityName}) {
     _messages.clear();
     _aiService.reset();
     _isResolved = false;
     _ticketCreated = false;
-    _messages.add(AIService.getWelcomeMessage());
+    _selectedCategoryName = categoryName;
+    _selectedActivityName = activityName;
+    _aiService.setScope(categoryName, activityName);
+    _messages.add(AIService.getWelcomeMessage(
+      categoryName: categoryName,
+      activityName: activityName,
+    ));
     notifyListeners();
   }
 
@@ -62,15 +74,20 @@ class ChatProvider extends ChangeNotifier {
       ),
     );
 
+    String finalCategory = _selectedCategoryName ?? _aiService.identifiedCategory ?? 'Suporte Geral';
+    String titlePrefix = _selectedActivityName != null ? '[$finalCategory - $_selectedActivityName]' : '[$finalCategory]';
+    
     final ticket = TicketModel(
       id: _uuid.v4(),
-      title: _aiService.generateTitle(firstUserMessage.content),
+      title: '$titlePrefix ${firstUserMessage.content.length > 30 ? firstUserMessage.content.substring(0, 30) + '...' : firstUserMessage.content}',
       description: firstUserMessage.content,
       userId: userId,
       userName: userName,
-      department: _aiService.identifiedDepartment ?? 'TI - Suporte Geral',
+      department: _selectedCategoryName == 'Financeiro' 
+          ? 'Financeiro' 
+          : (_selectedCategoryName == 'Contabilidade' ? 'Contabilidade' : (_aiService.identifiedDepartment ?? 'TI - Suporte Geral')),
       priority: _aiService.identifiedPriority,
-      category: _aiService.identifiedCategory ?? 'Suporte Geral',
+      category: finalCategory,
       chatHistory: List.from(_messages),
       aiSummary: _aiService.generateSummary(_messages),
     );

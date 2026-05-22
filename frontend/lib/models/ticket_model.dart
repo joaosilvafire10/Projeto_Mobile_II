@@ -17,6 +17,7 @@ class TicketModel {
   final DateTime createdAt;
   final DateTime? resolvedAt;
   final List<MessageModel> chatHistory;
+  final List<MessageModel> comments;
   final String aiSummary;
   final String? assignedTo;
   final String? solution;
@@ -34,6 +35,7 @@ class TicketModel {
     DateTime? createdAt,
     this.resolvedAt,
     this.chatHistory = const [],
+    this.comments = const [],
     this.aiSummary = '',
     this.assignedTo,
     this.solution,
@@ -52,6 +54,7 @@ class TicketModel {
     DateTime? createdAt,
     DateTime? resolvedAt,
     List<MessageModel>? chatHistory,
+    List<MessageModel>? comments,
     String? aiSummary,
     String? assignedTo,
     String? solution,
@@ -69,6 +72,7 @@ class TicketModel {
       createdAt: createdAt ?? this.createdAt,
       resolvedAt: resolvedAt ?? this.resolvedAt,
       chatHistory: chatHistory ?? this.chatHistory,
+      comments: comments ?? this.comments,
       aiSummary: aiSummary ?? this.aiSummary,
       assignedTo: assignedTo ?? this.assignedTo,
       solution: solution ?? this.solution,
@@ -89,6 +93,7 @@ class TicketModel {
       'createdAt': createdAt.toIso8601String(),
       'resolvedAt': resolvedAt?.toIso8601String(),
       'chatHistory': chatHistory.map((m) => m.toMap()).toList(),
+      'comments': comments.map((m) => m.toMap()).toList(),
       'aiSummary': aiSummary,
       'assignedTo': assignedTo,
       'solution': solution,

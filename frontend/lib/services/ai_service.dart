@@ -122,6 +122,9 @@ class AIService {
   bool _problemDescribed = false;
   bool _resolved = false;
 
+  String? selectedCategoryName;
+  String? selectedActivityName;
+
   void reset() {
     _currentStep = 0;
     _identifiedCategory = null;
@@ -130,6 +133,37 @@ class AIService {
     _questionIndex = 0;
     _problemDescribed = false;
     _resolved = false;
+    selectedCategoryName = null;
+    selectedActivityName = null;
+  }
+
+  void setScope(String? categoryName, String? activityName) {
+    selectedCategoryName = categoryName;
+    selectedActivityName = activityName;
+    if (categoryName != null && activityName != null) {
+      _identifiedCategory = categoryName;
+      final key = activityName.toLowerCase().replaceAll(' ', '_');
+      _knowledgeBase[key] = {
+        'keywords': [activityName.toLowerCase(), ...activityName.toLowerCase().split(' ')],
+        'category': categoryName,
+        'department': categoryName == 'TI'
+            ? 'TI - Suporte'
+            : (categoryName == 'Financeiro' ? 'Financeiro' : 'Contabilidade'),
+        'priority': TicketPriority.medium,
+        'questions': [
+          'Poderia descrever detalhadamente o problema com $activityName?',
+          'Quando esse problema começou a acontecer?',
+          'Isso está impedindo você de realizar alguma tarefa urgente?',
+        ],
+        'solutions': [
+          '💡 **Dica de Resolução para $activityName**:\n\n1. Certifique-se de salvar todos os seus trabalhos pendentes.\n2. Tente reiniciar a aplicação ou o dispositivo.\n3. Se for um problema de acesso, tente recarregar ou limpar os cookies de login.\n4. Caso persista, prossiga para a abertura de chamado para nossa equipe dedicada.',
+        ],
+        'canResolve': true,
+      };
+      
+      // Pre-match the knowledge base for this custom activity
+      _matchedKnowledge = _knowledgeBase[key];
+    }
   }
 
   bool get isResolved => _resolved;
@@ -145,10 +179,62 @@ class AIService {
 
     String response;
 
+    // Check scope restriction
+    if (selectedCategoryName != null && selectedActivityName != null) {
+      final messageLower = userMessage.toLowerCase();
+      
+      // Simple off-topic detection
+      final supportKeywords = [
+        'problema', 'ajuda', 'erro', 'como', 'consertar', 'arrumar', 'funciona',
+        'nao consigo', 'falha', 'tela', 'computador', 'sistema', 'senha', 'acesso',
+        'nota', 'fiscal', 'reembolso', 'pagamento', 'caixa', 'relatorio', 'windows',
+        'rede', 'internet', 'atualizar', 'atualizacao', 'software', 'hardware', 'impressora'
+      ];
+      
+      final activityWords = selectedActivityName!.toLowerCase().split(' ');
+      bool isRelated = false;
+      
+      // Match activity words
+      for (final word in activityWords) {
+        if (word.length > 3 && messageLower.contains(word)) {
+          isRelated = true;
+          break;
+        }
+      }
+      
+      // Match general support
+      if (!isRelated) {
+        for (final word in supportKeywords) {
+          if (messageLower.contains(word)) {
+            isRelated = true;
+            break;
+          }
+        }
+      }
+
+      // If user is just greeting, let it pass
+      if (messageLower.length < 5 || messageLower == 'oi' || messageLower == 'ola' || messageLower == 'bom dia' || messageLower == 'boa tarde') {
+        isRelated = true;
+      }
+
+      if (!isRelated) {
+        return MessageModel(
+          id: _uuid.v4(),
+          content: '⚠️ **Restrição de Escopo**\n\n'
+              'Desculpe, estou configurado para ajudá-lo apenas com assuntos de **$selectedActivityName** na área de **$selectedCategoryName**.\n\n'
+              'Para outras dúvidas ou assuntos diferentes, por favor abra um novo atendimento selecionando a categoria correta.',
+          sender: MessageSender.ai,
+        );
+      }
+    }
+
     if (!_problemDescribed) {
       // Primeira interação: analisar o problema descrito
       _problemDescribed = true;
-      _analyzeMessage(userMessage);
+      
+      if (selectedCategoryName == null) {
+        _analyzeMessage(userMessage);
+      }
 
       if (_matchedKnowledge != null) {
         response = _buildAnalysisResponse();
@@ -317,10 +403,17 @@ class AIService {
   }
 
   /// Mensagem de boas-vindas da IA
-  static MessageModel getWelcomeMessage() {
+  static MessageModel getWelcomeMessage({String? categoryName, String? activityName}) {
+    String scopeText = "";
+    if (categoryName != null && activityName != null) {
+      scopeText = 'Você selecionou a categoria **$categoryName** e a atividade **$activityName**.\n\n'
+          'Estou configurado para ajudá-lo especificamente com este assunto do negócio corporativo.\n\n';
+    }
+
     return MessageModel(
       id: _uuid.v4(),
       content: '👋 Olá! Sou o **Assistente Virtual** do suporte técnico.\n\n'
+          '$scopeText'
           'Estou aqui para ajudar a resolver seu problema de forma rápida e eficiente.\n\n'
           '💬 **Descreva seu problema** com o máximo de detalhes possível e eu vou:\n\n'
           '• 🔍 Analisar e identificar a categoria\n'

@@ -151,6 +151,54 @@ const aiTriageSchema = z.object({
     .optional()
     .default([]),
   ticketId: z.string().uuid().optional(),
+  categoryName: z.string().optional(),
+  activityName: z.string().optional(),
+});
+
+// =============================================
+// SCHEMAS DE CATEGORIA
+// =============================================
+
+const createCategorySchema = z.object({
+  name: z
+    .string({ required_error: "Nome é obrigatório." })
+    .min(2, "Nome deve ter pelo menos 2 caracteres.")
+    .max(100, "Nome deve ter no máximo 100 caracteres."),
+  description: z
+    .string()
+    .max(500, "Descrição deve ter no máximo 500 caracteres.")
+    .optional(),
+});
+
+const updateCategorySchema = z.object({
+  name: z.string().min(2).max(100).optional(),
+  description: z.string().max(500).nullable().optional(),
+  active: z.boolean().optional(),
+});
+
+// =============================================
+// SCHEMAS DE ATIVIDADE
+// =============================================
+
+const createActivitySchema = z.object({
+  name: z
+    .string({ required_error: "Nome é obrigatório." })
+    .min(2, "Nome deve ter pelo menos 2 caracteres.")
+    .max(200, "Nome deve ter no máximo 200 caracteres."),
+  description: z
+    .string()
+    .max(500, "Descrição deve ter no máximo 500 caracteres.")
+    .optional(),
+  categoryId: z
+    .string({ required_error: "ID da categoria é obrigatório." })
+    .uuid("ID da categoria inválido."),
+});
+
+const updateActivitySchema = z.object({
+  name: z.string().min(2).max(200).optional(),
+  description: z.string().max(500).nullable().optional(),
+  active: z.boolean().optional(),
+  categoryId: z.string().uuid("ID da categoria inválido.").optional(),
 });
 
 module.exports = {
@@ -162,4 +210,8 @@ module.exports = {
   ticketQuerySchema,
   createMessageSchema,
   aiTriageSchema,
+  createCategorySchema,
+  updateCategorySchema,
+  createActivitySchema,
+  updateActivitySchema,
 };
