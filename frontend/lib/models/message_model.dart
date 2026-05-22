@@ -4,6 +4,7 @@ class MessageModel {
   final String id;
   final String content;
   final MessageSender sender;
+  final String? senderName;
   final DateTime timestamp;
   final bool isTyping;
 
@@ -11,6 +12,7 @@ class MessageModel {
     required this.id,
     required this.content,
     required this.sender,
+    this.senderName,
     DateTime? timestamp,
     this.isTyping = false,
   }) : timestamp = timestamp ?? DateTime.now();
@@ -20,6 +22,7 @@ class MessageModel {
       'id': id,
       'content': content,
       'sender': sender.name,
+      'senderName': senderName,
       'timestamp': timestamp.toIso8601String(),
     };
   }
@@ -32,6 +35,7 @@ class MessageModel {
         (e) => e.name == map['sender'],
         orElse: () => MessageSender.ai,
       ),
+      senderName: map['senderName'],
       timestamp: DateTime.tryParse(map['timestamp'] ?? '') ?? DateTime.now(),
     );
   }

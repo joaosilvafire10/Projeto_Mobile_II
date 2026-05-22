@@ -3,12 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../providers/ticket_provider.dart';
+import '../providers/chat_provider.dart';
 import '../theme/app_theme.dart';
 import 'chat_screen.dart';
 import 'tickets_screen.dart';
 import 'dashboard_screen.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
+import 'manage_categories_screen.dart';
+import 'create_ticket_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -218,8 +221,18 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           _buildDrawerItem(
+            Icons.add_circle_outline_rounded,
+            'Criar Chamado',
+            () {
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CreateTicketScreen()),
+              );
+            },
+          ),
+          _buildDrawerItem(
             Icons.smart_toy_rounded,
-            'Novo Atendimento',
+            'Novo Atendimento (IA)',
             () {
               Navigator.pop(context);
               setState(() => _currentIndex = 1);
@@ -233,7 +246,17 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() => _currentIndex = 2);
             },
           ),
-          if (user?.role == 'ADMIN')
+          if (user?.role == 'ADMIN') ...[
+            _buildDrawerItem(
+              Icons.category_rounded,
+              'Gerenciar Categorias',
+              () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ManageCategoriesScreen()),
+                );
+              },
+            ),
             _buildDrawerItem(
               Icons.person_add_outlined,
               'Criar Usuário',
@@ -244,6 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
+          ],
           const Divider(color: AppTheme.dividerColor, height: 32),
           const Spacer(),
           Padding(

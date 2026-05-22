@@ -1,0 +1,115 @@
+// Schema Prisma - Sistema de Chamados Inteligentes
+
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../generated/prisma"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================
+// MODELS
+// =============================================
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  password     String
+  role         String   @default("USUARIO")
+  department   String   @default("GERAL")
+  avatarUrl    String?  @map("avatar_url")
+  active       Boolean  @default(true)
+  refreshToken String?  @map("refresh_token")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relações
+  tickets  Ticket[]
+  messages Message[]
+
+  @@map("users")
+}
+
+model Ticket {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  status      String   @default("ABERTO")
+  priority    String   @default("MEDIA")
+  department  String   @default("GERAL")
+  aiSummary   String?  @map("ai_summary")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relações
+  userId     String    @map("user_id")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId String?   @map("category_id")
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  activityId String?   @map("activity_id")
+  activity   Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  messages   Message[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@index([department])
+  @@index([categoryId])
+  @@index([activityId])
+  @@map("tickets")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relações
+  activities Activity[]
+  tickets    Ticket[]
+
+  @@map("categories")
+}
+
+model Activity {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relações
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tickets    Ticket[]
+
+  @@unique([name, categoryId])
+  @@index([categoryId])
+  @@map("activities")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  sender    String // "user", "ai", "system"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relações
+  ticketId String  @map("ticket_id")
+  ticket   Ticket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId   String? @map("user_id")
+  user     User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId])
+  @@index([userId])
+  @@map("messages")
+}

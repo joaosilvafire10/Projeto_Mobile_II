@@ -9,6 +9,8 @@ async function main() {
   // Limpar dados existentes
   await prisma.message.deleteMany();
   await prisma.ticket.deleteMany();
+  await prisma.activity.deleteMany();
+  await prisma.category.deleteMany();
   await prisma.user.deleteMany();
   console.log("🗑️  Dados anteriores removidos.");
 
@@ -59,7 +61,76 @@ async function main() {
   });
   console.log(`✅ Desenvolvedora criada: ${dev.email}`);
 
-  // Criar chamados de exemplo
+  // =============================================
+  // CATEGORIAS E ATIVIDADES
+  // =============================================
+
+  console.log("\n📂 Criando categorias e atividades...");
+
+  // Categoria TI
+  const catTI = await prisma.category.create({
+    data: {
+      name: "TI",
+      description: "Tecnologia da Informação - Suporte técnico, hardware, software e infraestrutura",
+      activities: {
+        create: [
+          { name: "Atualização de Windows", description: "Problemas com atualizações do sistema operacional Windows" },
+          { name: "Problema de Rede", description: "Problemas de conectividade, Wi-Fi, VPN e acesso à internet" },
+          { name: "Instalação de Software", description: "Instalação, configuração e licenciamento de softwares" },
+          { name: "Problema com Hardware", description: "Problemas com computador, monitor, teclado, mouse e periféricos" },
+          { name: "Reset de Senha", description: "Recuperação e redefinição de senhas de acesso" },
+          { name: "Problema com E-mail", description: "Problemas com envio, recebimento e configuração de e-mail" },
+          { name: "Backup e Recuperação", description: "Solicitação de backup de dados ou recuperação de arquivos" },
+        ],
+      },
+    },
+    include: { activities: true },
+  });
+  console.log(`✅ Categoria "${catTI.name}" criada com ${catTI.activities.length} atividades`);
+
+  // Categoria Contabilidade
+  const catContabilidade = await prisma.category.create({
+    data: {
+      name: "Contabilidade",
+      description: "Assuntos contábeis, fiscais e de demonstrações financeiras",
+      activities: {
+        create: [
+          { name: "Nota Fiscal", description: "Emissão, cancelamento e consulta de notas fiscais" },
+          { name: "Relatório Contábil", description: "Geração e correção de relatórios e balanços contábeis" },
+          { name: "Declaração de Impostos", description: "Declarações fiscais, IRPJ, CSLL e obrigações acessórias" },
+          { name: "Conciliação Bancária", description: "Conciliação de extratos bancários com registros contábeis" },
+          { name: "Lançamentos Contábeis", description: "Registro e correção de lançamentos no sistema contábil" },
+        ],
+      },
+    },
+    include: { activities: true },
+  });
+  console.log(`✅ Categoria "${catContabilidade.name}" criada com ${catContabilidade.activities.length} atividades`);
+
+  // Categoria Financeiro
+  const catFinanceiro = await prisma.category.create({
+    data: {
+      name: "Financeiro",
+      description: "Assuntos financeiros, pagamentos, recebimentos e controle orçamentário",
+      activities: {
+        create: [
+          { name: "Pagamento de Fornecedor", description: "Processamento e acompanhamento de pagamentos a fornecedores" },
+          { name: "Reembolso", description: "Solicitação e processamento de reembolsos de despesas" },
+          { name: "Fluxo de Caixa", description: "Análise e projeção de fluxo de caixa" },
+          { name: "Orçamento", description: "Elaboração, revisão e acompanhamento de orçamentos" },
+          { name: "Contas a Receber", description: "Gestão de cobranças e recebimentos de clientes" },
+        ],
+      },
+    },
+    include: { activities: true },
+  });
+  console.log(`✅ Categoria "${catFinanceiro.name}" criada com ${catFinanceiro.activities.length} atividades`);
+
+  // Criar chamados de exemplo (com categoria e atividade)
+  const atividadeWindows = catTI.activities.find(a => a.name === "Atualização de Windows");
+  const atividadeRede = catTI.activities.find(a => a.name === "Problema de Rede");
+  const atividadeRelatorio = catContabilidade.activities.find(a => a.name === "Relatório Contábil");
+
   const ticket1 = await prisma.ticket.create({
     data: {
       title: "Computador não liga após atualização",
@@ -68,6 +139,8 @@ async function main() {
       status: "ABERTO",
       priority: "ALTA",
       department: "TI",
+      categoryId: catTI.id,
+      activityId: atividadeWindows.id,
       aiSummary:
         "Problema de boot após Windows Update. Código BSoD 0x0000007E indica possível driver incompatível. Recomendado boot em modo seguro para desinstalar atualização recente.",
       userId: usuario.id,
@@ -82,6 +155,8 @@ async function main() {
       status: "EM_ANDAMENTO",
       priority: "MEDIA",
       department: "REDES",
+      categoryId: catTI.id,
+      activityId: atividadeRede.id,
       aiSummary:
         "Falha de conexão VPN com timeout. Possíveis causas: certificado expirado, firewall bloqueando, ou mudança de configuração no servidor VPN.",
       userId: usuario.id,
@@ -96,6 +171,8 @@ async function main() {
       status: "AGUARDANDO_USUARIO",
       priority: "CRITICA",
       department: "DESENVOLVIMENTO",
+      categoryId: catContabilidade.id,
+      activityId: atividadeRelatorio.id,
       aiSummary:
         "Bug no módulo de folha de pagamento afetando cálculos do departamento financeiro. Necessária investigação urgente na query de cálculo.",
       userId: usuario.id,
@@ -151,6 +228,10 @@ async function main() {
   console.log("  📧 tecnico@empresa.com  (TECNICO)");
   console.log("  📧 usuario@empresa.com  (USUARIO)");
   console.log("  📧 dev@empresa.com      (TECNICO)");
+  console.log("\n📂 Categorias criadas:");
+  console.log("  🔧 TI (7 atividades)");
+  console.log("  📊 Contabilidade (5 atividades)");
+  console.log("  💰 Financeiro (5 atividades)");
   console.log("========================================\n");
 }
 
