@@ -69,16 +69,70 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       ),
       builder: (_) => _EditStatusSheet(
         ticket: ticket,
-        onSave: (status, priority) {
-          context.read<TicketProvider>().editTicket(
+        onSave: (status, priority) async {
+          Navigator.pop(context);
+          final ok = await context.read<TicketProvider>().editTicket(
             widget.ticketId,
             status: status,
             priority: priority,
           );
-          Navigator.pop(context);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(ok ? 'Chamado atualizado!' : 'Erro ao atualizar.'),
+            backgroundColor: ok ? AppTheme.success : AppTheme.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ));
         },
       ),
     );
+  }
+
+  Future<void> _confirmDelete(BuildContext ctx) async {
+    final confirmed = await showDialog<bool>(
+      context: ctx,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppTheme.surfaceCard,
+        title: Text('Excluir Chamado',
+            style: GoogleFonts.inter(
+                fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+        content: Text(
+            'Tem certeza que deseja excluir este chamado? Esta ação não pode ser desfeita.',
+            style: GoogleFonts.inter(color: AppTheme.textSecondary)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancelar',
+                style: GoogleFonts.inter(color: AppTheme.textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
+            child: Text('Excluir',
+                style: GoogleFonts.inter(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+    final ok = await context.read<TicketProvider>().deleteTicket(widget.ticketId);
+    if (!mounted) return;
+    if (ok) {
+      Navigator.pop(context); // volta para a lista
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Chamado excluído com sucesso.'),
+        backgroundColor: AppTheme.success,
+        behavior: SnackBarBehavior.floating,
+      ));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Erro ao excluir chamado.'),
+        backgroundColor: AppTheme.error,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
   }
 
   @override
@@ -112,12 +166,17 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             title: Text('#${ticket.id.substring(0, 8).toUpperCase()}',
                 style: GoogleFonts.firaCode(fontSize: 16, fontWeight: FontWeight.w600)),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.edit_rounded, size: 22),
-                tooltip: 'Editar chamado',
-                onPressed: () => _showEditStatusSheet(ticket),
-              ),
-            ],
+            IconButton(
+              icon: const Icon(Icons.edit_rounded, size: 22),
+              tooltip: 'Editar chamado',
+              onPressed: () => _showEditStatusSheet(ticket),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded, size: 22, color: AppTheme.error),
+              tooltip: 'Excluir chamado',
+              onPressed: () => _confirmDelete(context),
+            ),
+          ],
           ),
           body: Column(
             children: [

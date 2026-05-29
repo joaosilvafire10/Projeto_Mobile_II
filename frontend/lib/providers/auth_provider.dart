@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../services/api_service.dart';
 
+/// Provider de autenticação.
+/// - Persiste tokens com [ApiService] (FlutterSecureStorage) — NUNCA SharedPreferences.
+/// - Verifica sessão automaticamente ao abrir o app.
+/// - Realiza refresh automático via interceptador do Dio.
 class AuthProvider extends ChangeNotifier {
   UserModel? _currentUser;
   bool _isLoading = false;
   String? _errorMessage;
-  ApiService? _apiServiceInstance;
-
-  ApiService get _apiService {
-    _apiServiceInstance ??= ApiService();
-    return _apiServiceInstance!;
-  }
+  final ApiService _apiService = ApiService();
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
@@ -24,20 +22,20 @@ class AuthProvider extends ChangeNotifier {
     _loadUser();
   }
 
+  /// Verifica se há token salvo e recupera o perfil do usuário
   Future<void> _loadUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
-    if (token != null) {
-      try {
-        final response = await _apiService.dio.get('/auth/me');
-        if (response.statusCode == 200) {
-          _currentUser = UserModel.fromMap(response.data['data']);
-          notifyListeners();
-        }
-      } catch (e) {
-        // Token might be invalid or expired
-        await logout();
+    final token = await _apiService.getAccessToken();
+    if (token == null) return;
+
+    try {
+      final response = await _apiService.dio.get('/auth/me');
+      if (response.statusCode == 200) {
+        _currentUser = UserModel.fromMap(response.data['data']);
+        notifyListeners();
       }
+    } catch (_) {
+      // Token inválido — limpa sessão silenciosamente
+      await _apiService.clearTokens();
     }
   }
 
@@ -54,21 +52,24 @@ class AuthProvider extends ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = response.data['data'];
-        final prefs = await SharedPreferences.getInstance();
-        
-        await prefs.setString('accessToken', data['tokens']['accessToken']);
-        await prefs.setString('refreshToken', data['tokens']['refreshToken']);
-        
+
+        // Armazena tokens com segurança via FlutterSecureStorage
+        await _apiService.saveTokens(
+          accessToken: data['tokens']['accessToken'] as String,
+          refreshToken: data['tokens']['refreshToken'] as String,
+        );
+
         _currentUser = UserModel.fromMap(data['user']);
         _isLoading = false;
         notifyListeners();
         return true;
       }
     } catch (e) {
+      print('Erro no login: $e');
       if (e is DioException && e.response != null) {
         _errorMessage = e.response?.data['message'] ?? 'Erro ao realizar login';
       } else {
-        _errorMessage = 'Erro de conexão com o servidor';
+        _errorMessage = 'Sem conexão — verifique sua internet';
       }
     }
 
@@ -103,10 +104,11 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
     } catch (e) {
+      print('Erro no registro: $e');
       if (e is DioException && e.response != null) {
         _errorMessage = e.response?.data['message'] ?? 'Erro ao registrar usuário';
       } else {
-        _errorMessage = 'Erro de conexão com o servidor';
+        _errorMessage = 'Sem conexão — verifique sua internet';
       }
     }
 
@@ -115,12 +117,12 @@ class AuthProvider extends ChangeNotifier {
     return false;
   }
 
+  /// Encerra a sessão: remove tokens do armazenamento seguro e retorna à tela de login.
   Future<void> logout() async {
     _currentUser = null;
     _errorMessage = null;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('accessToken');
-    await prefs.remove('refreshToken');
+    // Remove tokens do FlutterSecureStorage
+    await _apiService.clearTokens();
     notifyListeners();
   }
 

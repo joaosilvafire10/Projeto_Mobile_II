@@ -63,31 +63,37 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
   }
 
-  void _createTicket() {
+  Future<void> _createTicket() async {
     final auth = context.read<AuthProvider>();
     final user = auth.currentUser!;
-    final ticket = _chatProvider.createTicket(user.id, user.name);
-    context.read<TicketProvider>().addTicket(ticket);
+    final ticket = await _chatProvider.createTicket(user.id, user.name);
     _scrollToBottom();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(children: [
-          const Icon(Icons.check_circle, color: Colors.white, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Chamado ${ticket.id.substring(0, 8).toUpperCase()} criado!',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+    if (!mounted) return;
+
+    if (ticket != null) {
+      // Recarrega a lista de tickets para incluir o novo
+      await context.read<TicketProvider>().fetchTickets();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(children: [
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Chamado ${ticket.id.substring(0, 8).toUpperCase()} criado!',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+              ),
             ),
-          ),
-        ]),
-        backgroundColor: AppTheme.success.withValues(alpha: 0.9),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
+          ]),
+          backgroundColor: AppTheme.success.withValues(alpha: 0.9),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
   }
 
   void _markResolved() {

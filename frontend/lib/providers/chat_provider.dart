@@ -3,19 +3,24 @@ import 'package:uuid/uuid.dart';
 import '../models/ticket_model.dart';
 import '../models/message_model.dart';
 import '../services/ai_service.dart';
+import '../services/ticket_service.dart';
 
 class ChatProvider extends ChangeNotifier {
   final List<MessageModel> _messages = [];
   final AIService _aiService = AIService();
+  final TicketService _ticketService = TicketService();
+
   bool _isAiTyping = false;
   bool _isResolved = false;
   bool _ticketCreated = false;
+  TicketModel? _lastCreatedTicket;
   static const _uuid = Uuid();
 
   List<MessageModel> get messages => List.unmodifiable(_messages);
   bool get isAiTyping => _isAiTyping;
   bool get isResolved => _isResolved;
   bool get ticketCreated => _ticketCreated;
+  TicketModel? get lastCreatedTicket => _lastCreatedTicket;
   AIService get aiService => _aiService;
 
   String? _selectedCategoryName;
@@ -29,6 +34,7 @@ class ChatProvider extends ChangeNotifier {
     _aiService.reset();
     _isResolved = false;
     _ticketCreated = false;
+    _lastCreatedTicket = null;
     _selectedCategoryName = categoryName;
     _selectedActivityName = activityName;
     _aiService.setScope(categoryName, activityName);
@@ -42,7 +48,6 @@ class ChatProvider extends ChangeNotifier {
   Future<void> sendMessage(String content) async {
     if (content.trim().isEmpty) return;
 
-    // Adiciona mensagem do usuário
     final userMessage = MessageModel(
       id: _uuid.v4(),
       content: content.trim(),
@@ -52,7 +57,7 @@ class ChatProvider extends ChangeNotifier {
     _isAiTyping = true;
     notifyListeners();
 
-    // Processa com a IA
+    // Chama o backend (Gemini via /api/ai/triage)
     final aiResponse = await _aiService.processMessage(content.trim());
     _isAiTyping = false;
     _messages.add(aiResponse);
@@ -64,7 +69,8 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  TicketModel createTicket(String userId, String userName) {
+  /// Cria o ticket via API REST (POST /api/tickets) e atualiza o estado local.
+  Future<TicketModel?> createTicket(String userId, String userName) async {
     final firstUserMessage = _messages.firstWhere(
       (m) => m.sender == MessageSender.user,
       orElse: () => MessageModel(
@@ -74,41 +80,61 @@ class ChatProvider extends ChangeNotifier {
       ),
     );
 
-    String finalCategory = _selectedCategoryName ?? _aiService.identifiedCategory ?? 'Suporte Geral';
-    String titlePrefix = _selectedActivityName != null ? '[$finalCategory - $_selectedActivityName]' : '[$finalCategory]';
-    
-    final ticket = TicketModel(
-      id: _uuid.v4(),
-      title: '$titlePrefix ${firstUserMessage.content.length > 30 ? firstUserMessage.content.substring(0, 30) + '...' : firstUserMessage.content}',
-      description: firstUserMessage.content,
-      userId: userId,
-      userName: userName,
-      department: _selectedCategoryName == 'Financeiro' 
-          ? 'Financeiro' 
-          : (_selectedCategoryName == 'Contabilidade' ? 'Contabilidade' : (_aiService.identifiedDepartment ?? 'TI - Suporte Geral')),
-      priority: _aiService.identifiedPriority,
-      category: finalCategory,
-      chatHistory: List.from(_messages),
-      aiSummary: _aiService.generateSummary(_messages),
-    );
+    final String finalCategory = _selectedCategoryName ??
+        _aiService.identifiedCategory ??
+        'Suporte Geral';
+    final String titlePrefix = _selectedActivityName != null
+        ? '[$finalCategory - $_selectedActivityName]'
+        : '[$finalCategory]';
+    final String title =
+        '$titlePrefix ${firstUserMessage.content.length > 30 ? '${firstUserMessage.content.substring(0, 30)}...' : firstUserMessage.content}';
+    final String aiSummary = _aiService.generateSummary(_messages);
+    final String priorityApi =
+        _aiService.identifiedPriority == TicketPriority.high
+            ? 'ALTA'
+            : _aiService.identifiedPriority == TicketPriority.critical
+                ? 'CRITICA'
+                : _aiService.identifiedPriority == TicketPriority.low
+                    ? 'BAIXA'
+                    : 'MEDIA';
 
-    _ticketCreated = true;
+    try {
+      // POST à API REST — cria o chamado no servidor
+      final ticket = await _ticketService.create(
+        title: title,
+        description: firstUserMessage.content,
+        priority: priorityApi,
+        department: _aiService.identifiedDepartment,
+        aiSummary: aiSummary,
+      );
 
-    // Adiciona mensagem do sistema confirmando
-    _messages.add(MessageModel(
-      id: _uuid.v4(),
-      content: '🎫 **Chamado criado com sucesso!**\n\n'
-          '📋 **Nº:** ${ticket.id.substring(0, 8).toUpperCase()}\n'
-          '📂 **Categoria:** ${ticket.category}\n'
-          '🏢 **Departamento:** ${ticket.department}\n'
-          '📊 **Prioridade:** ${ticket.priority.name.toUpperCase()}\n\n'
-          'Sua equipe técnica receberá o chamado com todo o contexto desta conversa. '
-          'Você pode acompanhar o status na aba **"Meus Chamados"**.',
-      sender: MessageSender.system,
-    ));
+      _lastCreatedTicket = ticket;
+      _ticketCreated = true;
 
-    notifyListeners();
-    return ticket;
+      _messages.add(MessageModel(
+        id: _uuid.v4(),
+        content: '🎫 **Chamado criado com sucesso!**\n\n'
+            '📋 **Nº:** ${ticket.id.substring(0, 8).toUpperCase()}\n'
+            '📂 **Categoria:** ${ticket.category}\n'
+            '📊 **Prioridade:** $priorityApi\n\n'
+            'Sua equipe técnica receberá o chamado com todo o contexto desta conversa. '
+            'Você pode acompanhar o status na aba **"Meus Chamados"**.',
+        sender: MessageSender.system,
+      ));
+
+      notifyListeners();
+      return ticket;
+    } catch (e) {
+      // Fallback: cria localmente caso a API falhe
+      _messages.add(MessageModel(
+        id: _uuid.v4(),
+        content: '⚠️ Não foi possível criar o chamado no servidor. '
+            'Verifique sua conexão e tente novamente.',
+        sender: MessageSender.system,
+      ));
+      notifyListeners();
+      return null;
+    }
   }
 
   void markAsResolved() {

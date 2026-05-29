@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:uuid/uuid.dart';
-import '../providers/auth_provider.dart';
 import '../providers/ticket_provider.dart';
 import '../providers/category_provider.dart';
 import '../models/ticket_model.dart';
@@ -25,6 +23,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
   CategoryModel? _selectedCategory;
   ActivityModel? _selectedActivity;
   TicketPriority _selectedPriority = TicketPriority.medium;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -41,60 +40,82 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
     super.dispose();
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Regra de negócio 1: Categoria e Atividade são obrigatórias
     if (_selectedCategory == null || _selectedActivity == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, selecione a categoria e a atividade.'),
+        SnackBar(
+          content: const Text('Por favor, selecione a categoria e a atividade.'),
           backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       return;
     }
 
-    final auth = context.read<AuthProvider>();
-    final user = auth.currentUser!;
-    final uuid = const Uuid();
+    setState(() => _isSubmitting = true);
 
-    // Direciona o chamado para o grupo/departamento da categoria selecionada
-    final String department = _selectedCategory!.name;
+    // Converte prioridade para formato da API
+    final priorityMap = {
+      TicketPriority.low: 'BAIXA',
+      TicketPriority.medium: 'MEDIA',
+      TicketPriority.high: 'ALTA',
+      TicketPriority.critical: 'CRITICA',
+    };
 
-    final ticket = TicketModel(
-      id: uuid.v4(),
-      title: '[Manual - ${_selectedActivity!.name}] ${_titleController.text.trim()}',
-      description: _descController.text.trim(),
-      userId: user.id,
-      userName: user.name,
-      department: department,
-      status: TicketStatus.open,
-      priority: _selectedPriority,
-      category: _selectedCategory!.name,
-      createdAt: DateTime.now(),
-      aiSummary: 'Chamado aberto manualmente pelo usuário sem triagem da IA.',
-    );
+    final ticket = await context.read<TicketProvider>().addTicket(
+          title:
+              '[Manual - ${_selectedActivity!.name}] ${_titleController.text.trim()}',
+          description: _descController.text.trim(),
+          priority: priorityMap[_selectedPriority]!,
+          categoryId: _selectedCategory!.id,
+          activityId: _selectedActivity!.id,
+          department: _selectedCategory!.name,
+          aiSummary:
+              'Chamado aberto manualmente pelo usuário sem triagem da IA.',
+        );
 
-    context.read<TicketProvider>().addTicket(ticket);
+    setState(() => _isSubmitting = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(children: [
-          const Icon(Icons.check_circle, color: Colors.white, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Chamado manual criado com sucesso!',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+    if (!mounted) return;
+
+    if (ticket != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(children: [
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Chamado criado com sucesso!',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+              ),
             ),
-          ),
-        ]),
-        backgroundColor: AppTheme.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-
-    Navigator.pop(context); // Return to previous screen
+          ]),
+          backgroundColor: AppTheme.success,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      Navigator.pop(context);
+    } else {
+      final error = context.read<TicketProvider>().errorMessage ??
+          'Erro ao criar chamado.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
   }
 
   @override
@@ -139,205 +160,104 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                       ),
                       const SizedBox(height: 30),
 
-                      // Title Field
-                      Text(
-                        'Título do Problema',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                      // ── Título ──────────────────────────────────────────
+                      _fieldLabel('Título do Problema'),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _titleController,
                         style: const TextStyle(color: Colors.white),
-                        validator: (value) => value == null || value.trim().isEmpty
-                            ? 'O título é obrigatório.'
-                            : null,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'O título é obrigatório.';
+                          }
+                          // Regra de negócio 2: mínimo 5 caracteres
+                          if (value.trim().length < 5) {
+                            return 'O título deve ter no mínimo 5 caracteres.';
+                          }
+                          // Regra de negócio 3: máximo 120 caracteres
+                          if (value.trim().length > 120) {
+                            return 'O título deve ter no máximo 120 caracteres.';
+                          }
+                          return null;
+                        },
                         decoration: const InputDecoration(
                           hintText: 'Ex: Erro ao emitir Nota Fiscal',
                         ),
                       ),
                       const SizedBox(height: 20),
 
-                      // Category Dropdown
-                      Text(
-                        'Categoria',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                      // ── Categoria ───────────────────────────────────────
+                      _fieldLabel('Categoria'),
                       const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceCard,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.08)),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<CategoryModel>(
-                            isExpanded: true,
-                            dropdownColor: AppTheme.surfaceCard,
-                            hint: Text(
-                              'Selecione a Categoria...',
-                              style: GoogleFonts.inter(color: AppTheme.textMuted),
-                            ),
-                            value: _selectedCategory,
-                            icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                                color: AppTheme.accentBlue),
-                            items: categoryProvider.categories
-                                .map((CategoryModel cat) {
-                              return DropdownMenuItem<CategoryModel>(
-                                value: cat,
-                                child: Text(
-                                  cat.name,
-                                  style: GoogleFonts.inter(color: Colors.white),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (CategoryModel? newCat) {
-                              setState(() {
-                                _selectedCategory = newCat;
-                                _selectedActivity = null;
-                              });
-                            },
-                          ),
-                        ),
+                      _dropdown<CategoryModel>(
+                        hint: 'Selecione a Categoria...',
+                        value: _selectedCategory,
+                        items: categoryProvider.categories,
+                        labelBuilder: (c) => c.name,
+                        onChanged: (cat) {
+                          setState(() {
+                            _selectedCategory = cat;
+                            _selectedActivity = null;
+                          });
+                        },
+                        accentColor: AppTheme.accentBlue,
                       ),
                       const SizedBox(height: 20),
 
-                      // Activity Dropdown (if Category selected)
+                      // ── Atividade ───────────────────────────────────────
                       if (_selectedCategory != null) ...[
-                        Text(
-                          'Atividade',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
+                        _fieldLabel('Atividade'),
                         const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppTheme.surfaceCard,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.08)),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<ActivityModel>(
-                              isExpanded: true,
-                              dropdownColor: AppTheme.surfaceCard,
-                              hint: Text(
-                                'Selecione a Atividade...',
-                                style:
-                                    GoogleFonts.inter(color: AppTheme.textMuted),
-                              ),
-                              value: _selectedActivity,
-                              icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                                  color: AppTheme.accentCyan),
-                              items: _selectedCategory!.activities
-                                  .map((ActivityModel act) {
-                                return DropdownMenuItem<ActivityModel>(
-                                  value: act,
-                                  child: Text(
-                                    act.name,
-                                    style: GoogleFonts.inter(color: Colors.white),
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (ActivityModel? newAct) {
-                                setState(() {
-                                  _selectedActivity = newAct;
-                                });
-                              },
-                            ),
-                          ),
+                        _dropdown<ActivityModel>(
+                          hint: 'Selecione a Atividade...',
+                          value: _selectedActivity,
+                          items: _selectedCategory!.activities,
+                          labelBuilder: (a) => a.name,
+                          onChanged: (act) {
+                            setState(() => _selectedActivity = act);
+                          },
+                          accentColor: AppTheme.accentCyan,
                         ),
                         const SizedBox(height: 20),
                       ],
 
-                      // Priority Dropdown
-                      Text(
-                        'Prioridade',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                      // ── Prioridade ──────────────────────────────────────
+                      _fieldLabel('Prioridade'),
                       const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceCard,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.08)),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<TicketPriority>(
-                            isExpanded: true,
-                            dropdownColor: AppTheme.surfaceCard,
-                            value: _selectedPriority,
-                            icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                                color: AppTheme.accentOrange),
-                            items: TicketPriority.values
-                                .map((TicketPriority priority) {
-                              String label = 'Média';
-                              if (priority == TicketPriority.low) {
-                                label = 'Baixa';
-                              } else if (priority == TicketPriority.high) {
-                                label = 'Alta';
-                              } else if (priority == TicketPriority.critical) {
-                                label = 'Crítica';
-                              }
-                              return DropdownMenuItem<TicketPriority>(
-                                value: priority,
-                                child: Text(
-                                  label,
-                                  style: GoogleFonts.inter(color: Colors.white),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (TicketPriority? newPriority) {
-                              if (newPriority != null) {
-                                setState(() {
-                                  _selectedPriority = newPriority;
-                                });
-                              }
-                            },
-                          ),
-                        ),
+                      _dropdown<TicketPriority>(
+                        hint: '',
+                        value: _selectedPriority,
+                        items: TicketPriority.values,
+                        labelBuilder: (p) => switch (p) {
+                          TicketPriority.low => 'Baixa',
+                          TicketPriority.medium => 'Média',
+                          TicketPriority.high => 'Alta',
+                          TicketPriority.critical => 'Crítica',
+                        },
+                        onChanged: (p) {
+                          if (p != null) setState(() => _selectedPriority = p);
+                        },
+                        accentColor: AppTheme.accentOrange,
                       ),
                       const SizedBox(height: 20),
 
-                      // Description Field
-                      Text(
-                        'Descrição Detalhada',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                      // ── Descrição ───────────────────────────────────────
+                      _fieldLabel('Descrição Detalhada'),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _descController,
                         style: const TextStyle(color: Colors.white),
                         maxLines: 6,
-                        validator: (value) => value == null || value.trim().isEmpty
-                            ? 'A descrição é obrigatória.'
-                            : null,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'A descrição é obrigatória.';
+                          }
+                          // Regra de negócio: mínimo 10 caracteres
+                          if (value.trim().length < 10) {
+                            return 'A descrição deve ter no mínimo 10 caracteres.';
+                          }
+                          return null;
+                        },
                         decoration: const InputDecoration(
                           hintText:
                               'Descreva o problema com o máximo de detalhes possível, incluindo mensagens de erro...',
@@ -345,7 +265,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                       ),
                       const SizedBox(height: 40),
 
-                      // Submit Button
+                      // ── Botão de envio ──────────────────────────────────
                       SizedBox(
                         width: double.infinity,
                         child: Container(
@@ -354,27 +274,36 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.accentBlue.withValues(alpha: 0.3),
+                                color:
+                                    AppTheme.accentBlue.withValues(alpha: 0.3),
                                 blurRadius: 15,
                                 offset: const Offset(0, 6),
                               )
                             ],
                           ),
                           child: ElevatedButton(
-                            onPressed: _submitForm,
+                            onPressed: _isSubmitting ? null : _submitForm,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.transparent,
                               shadowColor: Colors.transparent,
-                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 18),
                             ),
-                            child: Text(
-                              'Enviar Solicitação',
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                            child: _isSubmitting
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 2),
+                                  )
+                                : Text(
+                                    'Enviar Solicitação',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
@@ -383,6 +312,49 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _fieldLabel(String label) {
+    return Text(
+      label,
+      style: GoogleFonts.inter(
+          fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+    );
+  }
+
+  Widget _dropdown<T>({
+    required String hint,
+    required T? value,
+    required List<T> items,
+    required String Function(T) labelBuilder,
+    required ValueChanged<T?> onChanged,
+    required Color accentColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          isExpanded: true,
+          dropdownColor: AppTheme.surfaceCard,
+          hint: Text(hint, style: GoogleFonts.inter(color: AppTheme.textMuted)),
+          value: value,
+          icon: Icon(Icons.keyboard_arrow_down_rounded, color: accentColor),
+          items: items.map((T item) {
+            return DropdownMenuItem<T>(
+              value: item,
+              child: Text(labelBuilder(item),
+                  style: GoogleFonts.inter(color: Colors.white)),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
+      ),
     );
   }
 }

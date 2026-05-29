@@ -1,13 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import '../models/ticket_model.dart';
 import '../models/message_model.dart';
+import '../services/ticket_service.dart';
+import '../services/api_service.dart';
 
+/// Provider de tickets — todas as operações passam pela API REST.
 class TicketProvider extends ChangeNotifier {
-  final List<TicketModel> _tickets = [];
+  final TicketService _service = TicketService();
+  final ApiService _api = ApiService();
+
+  List<TicketModel> _tickets = [];
+  bool _isLoading = false;
+  String? _errorMessage;
 
   List<TicketModel> get tickets => List.unmodifiable(_tickets);
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
-  /// Busca um chamado pelo ID
+  // ── Leitura ────────────────────────────────────────────────────────────────
+
+  Future<void> fetchTickets() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _tickets = await _service.fetchAll();
+    } on DioException catch (e) {
+      _errorMessage = _dioError(e);
+    } catch (e) {
+      _errorMessage = 'Erro inesperado ao carregar chamados.';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
   TicketModel? getTicketById(String ticketId) {
     final index = _tickets.indexWhere((t) => t.id == ticketId);
     return index != -1 ? _tickets[index] : null;
@@ -22,16 +51,102 @@ class TicketProvider extends ChangeNotifier {
     return _tickets.where((t) => t.status == status).toList();
   }
 
-  List<TicketModel> getTicketsByDepartment(String department) {
-    return _tickets.where((t) => t.department == department).toList();
+  // ── Criação (Create) ───────────────────────────────────────────────────────
+
+  /// Cria um ticket via POST e atualiza a lista local.
+  Future<TicketModel?> addTicket({
+    required String title,
+    required String description,
+    required String priority,   // formato API: BAIXA | MEDIA | ALTA | CRITICA
+    String? categoryId,
+    String? activityId,
+    String? department,
+    String? aiSummary,
+  }) async {
+    try {
+      final ticket = await _service.create(
+        title: title,
+        description: description,
+        priority: priority,
+        categoryId: categoryId,
+        activityId: activityId,
+        department: department,
+        aiSummary: aiSummary,
+      );
+      _tickets.insert(0, ticket);
+      notifyListeners();
+      return ticket;
+    } on DioException catch (e) {
+      _errorMessage = _dioError(e);
+      notifyListeners();
+      return null;
+    }
   }
 
-  void addTicket(TicketModel ticket) {
-    _tickets.add(ticket);
-    notifyListeners();
+  // ── Edição (Update) ────────────────────────────────────────────────────────
+
+  /// Atualiza status e prioridade via PUT e reflete na lista local.
+  Future<bool> editTicket(
+    String ticketId, {
+    TicketStatus? status,
+    TicketPriority? priority,
+    String? title,
+    String? description,
+  }) async {
+    try {
+      final local = getTicketById(ticketId);
+      final updated = await _service.update(
+        ticketId,
+        status: status != null
+            ? TicketModel(
+                id: '', title: '', description: '', userId: '', userName: '',
+                department: '', status: status,
+              ).statusApi
+            : null,
+        priority: priority != null
+            ? TicketModel(
+                id: '', title: '', description: '', userId: '', userName: '',
+                department: '', priority: priority,
+              ).priorityApi
+            : null,
+        title: title,
+        description: description,
+      );
+      final index = _tickets.indexWhere((t) => t.id == ticketId);
+      if (index != -1) {
+        // Mantém chatHistory e comments locais (não retornados no PUT)
+        _tickets[index] = updated.copyWith(
+          chatHistory: local?.chatHistory,
+          comments: local?.comments,
+        );
+      }
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = _dioError(e);
+      notifyListeners();
+      return false;
+    }
   }
 
-  /// Adiciona um comentário/mensagem ao chamado
+  // ── Exclusão (Delete) ─────────────────────────────────────────────────────
+
+  /// Remove ticket via DELETE e o retira da lista local.
+  Future<bool> deleteTicket(String ticketId) async {
+    try {
+      await _service.delete(ticketId);
+      _tickets.removeWhere((t) => t.id == ticketId);
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = _dioError(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // ── Comentários locais (messages vêm do detalhe) ──────────────────────────
+
   void addComment(String ticketId, MessageModel comment) {
     final index = _tickets.indexWhere((t) => t.id == ticketId);
     if (index != -1) {
@@ -42,56 +157,25 @@ class TicketProvider extends ChangeNotifier {
     }
   }
 
-  /// Edita os campos do chamado (título, descrição, prioridade, status)
-  void editTicket(String ticketId, {
-    String? title,
-    String? description,
-    TicketPriority? priority,
-    TicketStatus? status,
-  }) {
-    final index = _tickets.indexWhere((t) => t.id == ticketId);
-    if (index != -1) {
-      _tickets[index] = _tickets[index].copyWith(
-        title: title,
-        description: description,
-        priority: priority,
-        status: status,
-        resolvedAt: status == TicketStatus.resolved ? DateTime.now() : null,
-      );
-      notifyListeners();
+  /// Envia uma mensagem para o ticket via API e atualiza localmente
+  Future<void> sendMessage(String ticketId, String content) async {
+    try {
+      await _api.dio.post('/messages', data: {
+        'ticketId': ticketId,
+        'content': content,
+        'sender': 'user',
+      });
+    } catch (_) {
+      // Falha silenciosa — mensagem já adicionada localmente
     }
   }
 
-  void updateTicketStatus(String ticketId, TicketStatus newStatus) {
-    final index = _tickets.indexWhere((t) => t.id == ticketId);
-    if (index != -1) {
-      _tickets[index] = _tickets[index].copyWith(
-        status: newStatus,
-        resolvedAt: newStatus == TicketStatus.resolved ? DateTime.now() : null,
-      );
-      notifyListeners();
-    }
-  }
+  // ── Estatísticas (calculadas localmente) ──────────────────────────────────
 
-  void resolveTicket(String ticketId, String solution) {
-    final index = _tickets.indexWhere((t) => t.id == ticketId);
-    if (index != -1) {
-      _tickets[index] = _tickets[index].copyWith(
-        status: TicketStatus.resolved,
-        resolvedAt: DateTime.now(),
-        solution: solution,
-      );
-      notifyListeners();
-    }
-  }
-
-  // Estatísticas
   int get totalTickets => _tickets.length;
   int get openTickets => _tickets.where((t) => t.status == TicketStatus.open).length;
-  int get inProgressTickets =>
-      _tickets.where((t) => t.status == TicketStatus.inProgress).length;
-  int get resolvedTickets =>
-      _tickets.where((t) => t.status == TicketStatus.resolved).length;
+  int get inProgressTickets => _tickets.where((t) => t.status == TicketStatus.inProgress).length;
+  int get resolvedTickets => _tickets.where((t) => t.status == TicketStatus.resolved).length;
 
   Map<String, int> get ticketsByCategory {
     final map = <String, int>{};
@@ -107,5 +191,24 @@ class TicketProvider extends ChangeNotifier {
       map[ticket.priority] = (map[ticket.priority] ?? 0) + 1;
     }
     return map;
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  String _dioError(DioException e) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      return 'Timeout — verifique sua conexão.';
+    }
+    if (e.type == DioExceptionType.connectionError) {
+      return 'Sem conexão — verifique sua internet.';
+    }
+    return e.response?.data?['message'] as String? ??
+        'Erro ${e.response?.statusCode ?? "desconhecido"}.';
+  }
+
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
   }
 }

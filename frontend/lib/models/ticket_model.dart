@@ -41,6 +41,102 @@ class TicketModel {
     this.solution,
   }) : createdAt = createdAt ?? DateTime.now();
 
+  // =============================================
+  // Deserialização da resposta da API REST
+  // =============================================
+  factory TicketModel.fromMap(Map<String, dynamic> map) {
+    return TicketModel(
+      id: map['id'] as String? ?? '',
+      title: map['title'] as String? ?? '',
+      description: map['description'] as String? ?? '',
+      userId: map['userId'] as String? ?? map['user_id'] as String? ?? '',
+      userName: map['user'] != null
+          ? (map['user']['name'] as String? ?? '')
+          : (map['userName'] as String? ?? ''),
+      department: map['department'] as String? ?? 'GERAL',
+      status: _parseStatus(map['status'] as String?),
+      priority: _parsePriority(map['priority'] as String?),
+      category: map['category'] != null
+          ? (map['category']['name'] as String? ?? 'Geral')
+          : (map['categoryName'] as String? ?? 'Geral'),
+      createdAt: map['createdAt'] != null
+          ? DateTime.tryParse(map['createdAt'] as String) ?? DateTime.now()
+          : DateTime.now(),
+      resolvedAt: map['resolvedAt'] != null
+          ? DateTime.tryParse(map['resolvedAt'] as String)
+          : null,
+      aiSummary: map['aiSummary'] as String? ?? map['ai_summary'] as String? ?? '',
+      comments: map['messages'] != null
+          ? (map['messages'] as List)
+              .map((m) => MessageModel.fromMap(m as Map<String, dynamic>))
+              .toList()
+          : const [],
+    );
+  }
+
+  static TicketStatus _parseStatus(String? s) {
+    switch ((s ?? '').toUpperCase()) {
+      case 'ABERTO':
+      case 'OPEN':
+        return TicketStatus.open;
+      case 'EM_ANDAMENTO':
+      case 'IN_PROGRESS':
+        return TicketStatus.inProgress;
+      case 'RESOLVIDO':
+      case 'RESOLVED':
+        return TicketStatus.resolved;
+      case 'FINALIZADO':
+      case 'CLOSED':
+        return TicketStatus.closed;
+      default:
+        return TicketStatus.open;
+    }
+  }
+
+  static TicketPriority _parsePriority(String? p) {
+    switch ((p ?? '').toUpperCase()) {
+      case 'BAIXA':
+      case 'LOW':
+        return TicketPriority.low;
+      case 'ALTA':
+      case 'HIGH':
+        return TicketPriority.high;
+      case 'CRITICA':
+      case 'CRITICAL':
+        return TicketPriority.critical;
+      default:
+        return TicketPriority.medium;
+    }
+  }
+
+  // Converte status do Flutter para formato da API
+  String get statusApi {
+    switch (status) {
+      case TicketStatus.open:
+        return 'ABERTO';
+      case TicketStatus.inProgress:
+        return 'EM_ANDAMENTO';
+      case TicketStatus.resolved:
+        return 'RESOLVIDO';
+      case TicketStatus.closed:
+        return 'FINALIZADO';
+    }
+  }
+
+  // Converte prioridade do Flutter para formato da API
+  String get priorityApi {
+    switch (priority) {
+      case TicketPriority.low:
+        return 'BAIXA';
+      case TicketPriority.medium:
+        return 'MEDIA';
+      case TicketPriority.high:
+        return 'ALTA';
+      case TicketPriority.critical:
+        return 'CRITICA';
+    }
+  }
+
   TicketModel copyWith({
     String? id,
     String? title,

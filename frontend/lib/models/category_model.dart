@@ -32,6 +32,16 @@ class ActivityModel {
       categoryId: map['categoryId'] ?? map['category_id'] ?? '',
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ActivityModel &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 class CategoryModel {
@@ -73,4 +83,14 @@ class CategoryModel {
       activities: activitiesList,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CategoryModel &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

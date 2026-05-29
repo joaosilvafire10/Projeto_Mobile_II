@@ -1,138 +1,44 @@
-import 'dart:math';
+import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
 import '../models/message_model.dart';
 import '../models/ticket_model.dart';
+import '../services/api_service.dart';
 import 'package:uuid/uuid.dart';
 
-/// Serviço de IA simulado que gerencia o fluxo inteligente de atendimento.
-/// Em produção, isso se conectaria a uma API real de IA (GPT, Gemini, etc).
+/// Serviço de IA — chama o endpoint real do backend (/api/ai/triage).
+/// O backend usa o Google Gemini para processar as mensagens.
+/// Possui fallback local caso o serviço esteja indisponível.
 class AIService {
   static const _uuid = Uuid();
+  final ApiService _api = ApiService();
 
-  // Base de conhecimento para resolução automática
-  static final Map<String, Map<String, dynamic>> _knowledgeBase = {
-    'senha': {
-      'keywords': ['senha', 'password', 'login', 'acesso', 'entrar', 'esqueci', 'redefinir', 'resetar'],
-      'category': 'Acesso e Autenticação',
-      'department': 'TI - Suporte',
-      'priority': TicketPriority.medium,
-      'questions': [
-        'Qual sistema você está tentando acessar?',
-        'Há quanto tempo está com esse problema?',
-        'Você já tentou usar a opção "Esqueci minha senha"?',
-      ],
-      'solutions': [
-        '🔐 **Redefinição de Senha**\n\nPara redefinir sua senha, siga estes passos:\n\n1. Acesse a tela de login do sistema\n2. Clique em "Esqueci minha senha"\n3. Informe seu e-mail corporativo\n4. Verifique sua caixa de entrada (inclusive spam)\n5. Clique no link recebido e crie uma nova senha\n\n💡 **Dica:** A nova senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas e números.',
-      ],
-      'canResolve': true,
-    },
-    'internet': {
-      'keywords': ['internet', 'wifi', 'rede', 'conexão', 'conectar', 'lento', 'desconectando', 'sem acesso'],
-      'category': 'Infraestrutura de Rede',
-      'department': 'TI - Infraestrutura',
-      'priority': TicketPriority.high,
-      'questions': [
-        'O problema é com Wi-Fi ou rede cabeada?',
-        'Outros colegas do mesmo setor estão com o mesmo problema?',
-        'Você já tentou reiniciar o roteador/modem?',
-      ],
-      'solutions': [
-        '🌐 **Problemas de Conexão**\n\nTente os seguintes passos:\n\n1. Desconecte e reconecte à rede Wi-Fi\n2. Esqueça a rede e conecte novamente\n3. Reinicie seu dispositivo\n4. Verifique se o modo avião está desativado\n5. Tente se conectar a outra rede para testar\n\n⚡ Se o problema persistir, pode ser uma questão de infraestrutura que precisa de análise da equipe técnica.',
-      ],
-      'canResolve': true,
-    },
-    'email': {
-      'keywords': ['email', 'e-mail', 'outlook', 'gmail', 'enviar', 'receber', 'caixa', 'mensagem'],
-      'category': 'Comunicação e E-mail',
-      'department': 'TI - Suporte',
-      'priority': TicketPriority.medium,
-      'questions': [
-        'Qual cliente de e-mail você está utilizando?',
-        'Consegue acessar o e-mail pelo navegador (webmail)?',
-        'A mensagem de erro aparece ao enviar ou receber?',
-      ],
-      'solutions': [
-        '📧 **Problemas com E-mail**\n\n1. Verifique sua conexão com a internet\n2. Tente acessar via webmail (navegador)\n3. Limpe o cache do aplicativo de e-mail\n4. Verifique se o armazenamento não está cheio\n5. Reconfigure a conta removendo e adicionando novamente\n\n📌 Caso use Outlook, tente reparar o perfil em: Painel de Controle > Email > Mostrar Perfis > Reparar.',
-      ],
-      'canResolve': true,
-    },
-    'impressora': {
-      'keywords': ['impressora', 'imprimir', 'printer', 'impressão', 'toner', 'papel', 'scanner'],
-      'category': 'Periféricos e Impressão',
-      'department': 'TI - Suporte',
-      'priority': TicketPriority.low,
-      'questions': [
-        'Qual é o modelo e localização da impressora?',
-        'A impressora aparece como disponível no seu computador?',
-        'Aparece alguma mensagem de erro específica?',
-      ],
-      'solutions': [
-        '🖨️ **Problemas com Impressora**\n\n1. Verifique se a impressora está ligada e conectada\n2. Reinicie a fila de impressão:\n   - Windows: Serviços > Spooler de Impressão > Reiniciar\n3. Remova trabalhos travados na fila\n4. Verifique níveis de toner e papel\n5. Tente imprimir uma página de teste\n\n🔧 Se o problema persistir, reinstale o driver da impressora.',
-      ],
-      'canResolve': true,
-    },
-    'software': {
-      'keywords': ['instalar', 'programa', 'software', 'aplicativo', 'app', 'atualizar', 'erro', 'travando', 'crashando', 'bug'],
-      'category': 'Software e Aplicações',
-      'department': 'TI - Desenvolvimento',
-      'priority': TicketPriority.medium,
-      'questions': [
-        'Qual software/aplicativo está apresentando o problema?',
-        'Qual é a versão do software?',
-        'O erro ocorre ao abrir o programa ou durante o uso?',
-        'Aparece alguma mensagem de erro? Se sim, qual?',
-      ],
-      'solutions': [],
-      'canResolve': false,
-    },
-    'hardware': {
-      'keywords': ['computador', 'notebook', 'tela', 'monitor', 'teclado', 'mouse', 'lento', 'travando', 'reiniciando', 'desligando'],
-      'category': 'Hardware e Equipamentos',
-      'department': 'TI - Infraestrutura',
-      'priority': TicketPriority.high,
-      'questions': [
-        'Qual equipamento está com problema?',
-        'Desde quando o problema começou?',
-        'O equipamento faz algum barulho incomum?',
-        'Houve alguma queda ou impacto recente?',
-      ],
-      'solutions': [],
-      'canResolve': false,
-    },
-    'acesso': {
-      'keywords': ['permissão', 'acesso', 'autorização', 'bloqueado', 'restrito', 'liberar', 'pasta', 'compartilhamento'],
-      'category': 'Gestão de Acessos',
-      'department': 'TI - Segurança',
-      'priority': TicketPriority.medium,
-      'questions': [
-        'Qual recurso/sistema você precisa acessar?',
-        'Você já teve acesso anteriormente?',
-        'Seu gestor já autorizou o acesso?',
-      ],
-      'solutions': [],
-      'canResolve': false,
-    },
-  };
+  // Histórico de conversa para envio ao backend
+  final List<Map<String, String>> _conversationHistory = [];
 
-  // Estado do fluxo de conversa
-  int _currentStep = 0;
-  String? _identifiedCategory;
-  Map<String, dynamic>? _matchedKnowledge;
-  final List<String> _collectedInfo = [];
-  int _questionIndex = 0;
-  bool _problemDescribed = false;
+  // Estado da conversa
   bool _resolved = false;
+  String? _identifiedCategory;
+  String? _identifiedDepartment;
+  TicketPriority _identifiedPriority = TicketPriority.medium;
+  String? _aiSummary;
 
+  // Escopo selecionado pelo usuário
   String? selectedCategoryName;
   String? selectedActivityName;
 
+  bool get isResolved => _resolved;
+  String? get identifiedDepartment => _identifiedDepartment;
+  String? get identifiedCategory => _identifiedCategory;
+  TicketPriority get identifiedPriority => _identifiedPriority;
+  String? get aiSummary => _aiSummary;
+
   void reset() {
-    _currentStep = 0;
-    _identifiedCategory = null;
-    _matchedKnowledge = null;
-    _collectedInfo.clear();
-    _questionIndex = 0;
-    _problemDescribed = false;
+    _conversationHistory.clear();
     _resolved = false;
+    _identifiedCategory = null;
+    _identifiedDepartment = null;
+    _identifiedPriority = TicketPriority.medium;
+    _aiSummary = null;
     selectedCategoryName = null;
     selectedActivityName = null;
   }
@@ -140,288 +46,146 @@ class AIService {
   void setScope(String? categoryName, String? activityName) {
     selectedCategoryName = categoryName;
     selectedActivityName = activityName;
-    if (categoryName != null && activityName != null) {
-      _identifiedCategory = categoryName;
-      final key = activityName.toLowerCase().replaceAll(' ', '_');
-      _knowledgeBase[key] = {
-        'keywords': [activityName.toLowerCase(), ...activityName.toLowerCase().split(' ')],
-        'category': categoryName,
-        'department': categoryName == 'TI'
-            ? 'TI - Suporte'
-            : (categoryName == 'Financeiro' ? 'Financeiro' : 'Contabilidade'),
-        'priority': TicketPriority.medium,
-        'questions': [
-          'Poderia descrever detalhadamente o problema com $activityName?',
-          'Quando esse problema começou a acontecer?',
-          'Isso está impedindo você de realizar alguma tarefa urgente?',
-        ],
-        'solutions': [
-          '💡 **Dica de Resolução para $activityName**:\n\n1. Certifique-se de salvar todos os seus trabalhos pendentes.\n2. Tente reiniciar a aplicação ou o dispositivo.\n3. Se for um problema de acesso, tente recarregar ou limpar os cookies de login.\n4. Caso persista, prossiga para a abertura de chamado para nossa equipe dedicada.',
-        ],
-        'canResolve': true,
-      };
-      
-      // Pre-match the knowledge base for this custom activity
-      _matchedKnowledge = _knowledgeBase[key];
-    }
+    _identifiedCategory = categoryName;
   }
 
-  bool get isResolved => _resolved;
-  String? get identifiedDepartment => _matchedKnowledge?['department'];
-  String? get identifiedCategory => _matchedKnowledge?['category'] ?? _identifiedCategory;
-  TicketPriority get identifiedPriority =>
-      _matchedKnowledge?['priority'] ?? TicketPriority.medium;
-
-  /// Processa a mensagem do usuário e retorna a resposta da IA
+  /// Envia mensagem ao backend e retorna a resposta da IA.
+  /// Em caso de falha, usa fallback local com mensagem amigável.
   Future<MessageModel> processMessage(String userMessage) async {
-    // Simula delay de processamento
-    await Future.delayed(Duration(milliseconds: 800 + Random().nextInt(1200)));
+    // Adiciona mensagem ao histórico local
+    _conversationHistory.add({'role': 'user', 'content': userMessage});
 
-    String response;
+    try {
+      final response = await _api.dio.post(
+        '/ai/triage',
+        data: {
+          'message': userMessage,
+          'conversationHistory': _conversationHistory,
+          if (selectedCategoryName != null) 'categoryName': selectedCategoryName,
+          if (selectedActivityName != null) 'activityName': selectedActivityName,
+        },
+      );
 
-    // Check scope restriction
-    if (selectedCategoryName != null && selectedActivityName != null) {
-      final messageLower = userMessage.toLowerCase();
-      
-      // Simple off-topic detection
-      final supportKeywords = [
-        'problema', 'ajuda', 'erro', 'como', 'consertar', 'arrumar', 'funciona',
-        'nao consigo', 'falha', 'tela', 'computador', 'sistema', 'senha', 'acesso',
-        'nota', 'fiscal', 'reembolso', 'pagamento', 'caixa', 'relatorio', 'windows',
-        'rede', 'internet', 'atualizar', 'atualizacao', 'software', 'hardware', 'impressora'
-      ];
-      
-      final activityWords = selectedActivityName!.toLowerCase().split(' ');
-      bool isRelated = false;
-      
-      // Match activity words
-      for (final word in activityWords) {
-        if (word.length > 3 && messageLower.contains(word)) {
-          isRelated = true;
-          break;
+      if (response.statusCode == 200) {
+        final data = response.data['data'] as Map<String, dynamic>;
+        final aiText = data['message'] as String? ?? '';
+        final responseType = data['type'] as String? ?? 'response';
+
+        // Registra metadados identificados pela IA
+        if (data['category'] != null) _identifiedCategory = data['category'] as String;
+        if (data['department'] != null) _identifiedDepartment = data['department'] as String;
+        if (data['priority'] != null) {
+          final p = (data['priority'] as String? ?? '').toUpperCase();
+          _identifiedPriority = p == 'ALTA' || p == 'HIGH'
+              ? TicketPriority.high
+              : p == 'CRITICA' || p == 'CRITICAL'
+                  ? TicketPriority.critical
+                  : p == 'BAIXA' || p == 'LOW'
+                      ? TicketPriority.low
+                      : TicketPriority.medium;
         }
-      }
-      
-      // Match general support
-      if (!isRelated) {
-        for (final word in supportKeywords) {
-          if (messageLower.contains(word)) {
-            isRelated = true;
-            break;
+
+        // Adiciona resposta ao histórico
+        _conversationHistory.add({'role': 'ai', 'content': aiText});
+
+        // Se a IA criou um ticket automaticamente
+        if (responseType == 'ticket_created') {
+          _resolved = true;
+          if (data['ticket'] != null) {
+            _aiSummary = (data['ticket'] as Map<String, dynamic>)['aiSummary'] as String?;
           }
         }
-      }
 
-      // If user is just greeting, let it pass
-      if (messageLower.length < 5 || messageLower == 'oi' || messageLower == 'ola' || messageLower == 'bom dia' || messageLower == 'boa tarde') {
-        isRelated = true;
-      }
-
-      if (!isRelated) {
         return MessageModel(
           id: _uuid.v4(),
-          content: '⚠️ **Restrição de Escopo**\n\n'
-              'Desculpe, estou configurado para ajudá-lo apenas com assuntos de **$selectedActivityName** na área de **$selectedCategoryName**.\n\n'
-              'Para outras dúvidas ou assuntos diferentes, por favor abra um novo atendimento selecionando a categoria correta.',
+          content: aiText,
           sender: MessageSender.ai,
         );
       }
+    } on DioException catch (e) {
+      debugPrint('AIService: Erro na chamada à API — ${e.message}');
+      return _fallbackMessage(e);
+    } catch (e) {
+      debugPrint('AIService: Erro inesperado — $e');
     }
 
-    if (!_problemDescribed) {
-      // Primeira interação: analisar o problema descrito
-      _problemDescribed = true;
-      
-      if (selectedCategoryName == null) {
-        _analyzeMessage(userMessage);
-      }
-
-      if (_matchedKnowledge != null) {
-        response = _buildAnalysisResponse();
-      } else {
-        _identifiedCategory = 'Suporte Geral';
-        response = '🔍 Entendi seu problema. Preciso de mais algumas informações para ajudá-lo melhor.\n\n'
-            'Poderia me dizer:\n'
-            '• Desde quando esse problema está acontecendo?\n'
-            '• Com que frequência ele ocorre?\n'
-            '• Já tentou alguma solução?';
-        _currentStep = 2; // Pula para coleta de info
-      }
-    } else if (_matchedKnowledge != null && _canAutoResolve()) {
-      // Tenta resolver automaticamente
-      _resolved = true;
-      response = _getAutoSolution();
-    } else if (_hasMoreQuestions()) {
-      // Coleta informações complementares
-      _collectedInfo.add(userMessage);
-      response = _getNextQuestion();
-    } else {
-      // Todas as informações coletadas - gerar resumo
-      _collectedInfo.add(userMessage);
-      response = _buildEscalationResponse();
-    }
-
-    _currentStep++;
-
-    return MessageModel(
-      id: _uuid.v4(),
-      content: response,
-      sender: MessageSender.ai,
-    );
+    return _fallbackMessage(null);
   }
 
-  void _analyzeMessage(String message) {
-    final lowerMessage = message.toLowerCase();
-
-    for (final entry in _knowledgeBase.entries) {
-      final keywords = entry.value['keywords'] as List<String>;
-      for (final keyword in keywords) {
-        if (lowerMessage.contains(keyword)) {
-          _matchedKnowledge = entry.value;
-          return;
-        }
-      }
-    }
-  }
-
-  String _buildAnalysisResponse() {
-    final category = _matchedKnowledge!['category'];
-    final canResolve = _matchedKnowledge!['canResolve'] as bool;
-
-    if (canResolve) {
-      return '✅ **Problema identificado!**\n\n'
-          '📂 **Categoria:** $category\n\n'
-          'Encontrei uma possível solução para o seu problema. Gostaria de tentar?\n\n'
-          'Responda **"sim"** para ver a solução ou descreva mais detalhes se o problema for diferente.';
-    } else {
-      return '🔍 **Problema identificado!**\n\n'
-          '📂 **Categoria:** $category\n\n'
-          'Para esse tipo de problema, preciso coletar algumas informações antes de encaminhar para a equipe técnica.\n\n'
-          '${_getNextQuestionText()}';
-    }
-  }
-
-  bool _canAutoResolve() {
-    if (_matchedKnowledge == null) return false;
-    final canResolve = _matchedKnowledge!['canResolve'] as bool;
-    final solutions = _matchedKnowledge!['solutions'] as List<String>;
-    return canResolve && solutions.isNotEmpty && _currentStep <= 2;
-  }
-
-  String _getAutoSolution() {
-    final solutions = _matchedKnowledge!['solutions'] as List<String>;
-    return '${solutions.first}\n\n'
-        '---\n\n'
-        '✅ **Problema resolvido?**\n\n'
-        'Se essa solução resolveu seu problema, você pode encerrar o atendimento.\n'
-        'Se o problema persistir, clique no botão **"Abrir Chamado"** para que nossa equipe técnica analise seu caso.';
-  }
-
-  bool _hasMoreQuestions() {
-    if (_matchedKnowledge == null) return _currentStep < 4;
-    final questions = _matchedKnowledge!['questions'] as List<String>;
-    return _questionIndex < questions.length;
-  }
-
-  String _getNextQuestion() {
-    _questionIndex++;
-    return _getNextQuestionText();
-  }
-
-  String _getNextQuestionText() {
-    if (_matchedKnowledge != null) {
-      final questions = _matchedKnowledge!['questions'] as List<String>;
-      if (_questionIndex < questions.length) {
-        return '❓ ${questions[_questionIndex]}';
-      }
-    }
-    // Perguntas genéricas
-    final genericQuestions = [
-      '❓ Poderia descrever com mais detalhes o que acontece?',
-      '❓ Esse problema afeta outros colegas do seu setor?',
-      '❓ Qual é a urgência desta solicitação para o seu trabalho?',
-    ];
-    final idx = _currentStep - 2;
-    if (idx >= 0 && idx < genericQuestions.length) {
-      return genericQuestions[idx];
-    }
-    return _buildEscalationResponse();
-  }
-
-  String _buildEscalationResponse() {
-    final dept = _matchedKnowledge?['department'] ?? 'TI - Suporte Geral';
-    final category = _matchedKnowledge?['category'] ?? 'Suporte Geral';
-
-    return '📋 **Resumo do Atendimento**\n\n'
-        'Coletei todas as informações necessárias.\n\n'
-        '📂 **Categoria:** $category\n'
-        '🏢 **Departamento:** $dept\n'
-        '📊 **Informações coletadas:** ${_collectedInfo.length} respostas\n\n'
-        '---\n\n'
-        'Infelizmente não consegui resolver seu problema automaticamente. '
-        'Recomendo a abertura de um chamado técnico para que a equipe especializada possa te ajudar.\n\n'
-        'Clique no botão **"Abrir Chamado"** abaixo para criar automaticamente um chamado com todo o histórico desta conversa.';
-  }
-
-  /// Gera o resumo da conversa para anexar ao chamado
+  /// Gera um resumo da conversa para o chamado
   String generateSummary(List<MessageModel> messages) {
-    final dept = _matchedKnowledge?['department'] ?? 'TI - Suporte Geral';
-    final category = _matchedKnowledge?['category'] ?? 'Suporte Geral';
+    if (_aiSummary != null) return _aiSummary!;
 
     final buffer = StringBuffer();
-    buffer.writeln('═══ RESUMO GERADO PELA IA ═══');
+    buffer.writeln('═══ RESUMO GERADO PELA IA (Gemini) ═══');
     buffer.writeln('');
-    buffer.writeln('📂 Categoria: $category');
-    buffer.writeln('🏢 Departamento Sugerido: $dept');
-    buffer.writeln('📊 Prioridade: ${identifiedPriority.name.toUpperCase()}');
+    buffer.writeln('📂 Categoria: ${_identifiedCategory ?? "Suporte Geral"}');
+    buffer.writeln('🏢 Departamento: ${_identifiedDepartment ?? "TI - Suporte"}');
+    buffer.writeln('📊 Prioridade: ${_identifiedPriority.name.toUpperCase()}');
     buffer.writeln('💬 Total de mensagens: ${messages.length}');
     buffer.writeln('');
     buffer.writeln('─── Descrição do Problema ───');
-
     for (final msg in messages) {
       if (msg.sender == MessageSender.user) {
         buffer.writeln('• ${msg.content}');
       }
     }
-
-    buffer.writeln('');
-    buffer.writeln('─── Informações Coletadas ───');
-    for (int i = 0; i < _collectedInfo.length; i++) {
-      buffer.writeln('${i + 1}. ${_collectedInfo[i]}');
-    }
-
     return buffer.toString();
   }
 
   /// Gera título automático para o chamado
   String generateTitle(String firstMessage) {
-    final category = _matchedKnowledge?['category'] ?? 'Suporte';
+    final category = _identifiedCategory ?? 'Suporte';
     final truncated = firstMessage.length > 40
         ? '${firstMessage.substring(0, 40)}...'
         : firstMessage;
     return '[$category] $truncated';
   }
 
-  /// Mensagem de boas-vindas da IA
+  /// Mensagem de boas-vindas
   static MessageModel getWelcomeMessage({String? categoryName, String? activityName}) {
-    String scopeText = "";
+    String scopeText = '';
     if (categoryName != null && activityName != null) {
-      scopeText = 'Você selecionou a categoria **$categoryName** e a atividade **$activityName**.\n\n'
-          'Estou configurado para ajudá-lo especificamente com este assunto do negócio corporativo.\n\n';
+      scopeText = 'Você selecionou **$categoryName → $activityName**.\n\n';
     }
 
     return MessageModel(
       id: _uuid.v4(),
-      content: '👋 Olá! Sou o **Assistente Virtual** do suporte técnico.\n\n'
+      content: '👋 Olá! Sou o **Assistente Gemini** do suporte técnico.\n\n'
           '$scopeText'
-          'Estou aqui para ajudar a resolver seu problema de forma rápida e eficiente.\n\n'
-          '💬 **Descreva seu problema** com o máximo de detalhes possível e eu vou:\n\n'
+          'Estou aqui para ajudar a resolver seu problema de forma rápida.\n\n'
+          '💬 **Descreva seu problema** com o máximo de detalhes e eu vou:\n\n'
           '• 🔍 Analisar e identificar a categoria\n'
           '• 💡 Tentar uma solução automática\n'
           '• 📋 Coletar informações técnicas\n'
-          '• 🎯 Direcionar ao setor correto, se necessário\n\n'
+          '• 🎯 Criar um chamado se necessário\n\n'
           '_Como posso ajudá-lo hoje?_',
       sender: MessageSender.ai,
     );
   }
+
+  // ── Fallback quando a API de IA está indisponível ──────────────────────────
+
+  MessageModel _fallbackMessage(DioException? e) {
+    String msg;
+    if (e?.type == DioExceptionType.connectionError ||
+        e?.type == DioExceptionType.connectionTimeout) {
+      msg = '⚠️ **Serviço de IA temporariamente indisponível.**\n\n'
+          'Não foi possível conectar ao servidor. Verifique sua internet.\n\n'
+          'Você ainda pode **abrir um chamado manual** clicando no botão abaixo.';
+    } else {
+      msg = '⚠️ **Assistente IA indisponível no momento.**\n\n'
+          'Nosso serviço de inteligência artificial está temporariamente fora do ar.\n\n'
+          '📋 Você pode abrir um chamado diretamente — clique em **"Abrir Chamado"** '
+          'para que a equipe técnica receba sua solicitação.';
+    }
+
+    return MessageModel(
+      id: _uuid.v4(),
+      content: msg,
+      sender: MessageSender.system,
+    );
+  }
 }
+
+

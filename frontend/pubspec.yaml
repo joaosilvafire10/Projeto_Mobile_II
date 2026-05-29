@@ -15,7 +15,7 @@ dependencies:
   uuid: ^4.5.1
   intl: ^0.20.2
   provider: ^6.1.2
-  shared_preferences: ^2.3.4
+  flutter_secure_storage: ^9.2.4
   animate_do: ^3.3.4
   dio: ^5.9.2
 
