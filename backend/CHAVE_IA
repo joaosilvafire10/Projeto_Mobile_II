@@ -1,0 +1,26 @@
+Acesse o Google AI Studio: Abra o seu navegador e acesse o site oficial: 👉 https://aistudio.google.com/
+
+Faça Login com sua Conta Google: Entre utilizando a sua conta pessoal do Google (seu Gmail).
+
+Crie a Chave de API:
+
+No menu lateral esquerdo (ou no topo da página), clique no botão azul "Get API key" (Obter chave de API).
+Clique em "Create API key" (Criar chave de API).
+Escolha a opção "Create API key in new project" (Criar chave de API em um novo projeto).
+Copie a sua Chave:
+
+Um código longo que começa com AIzaSy... será gerado.
+Clique no botão de copiar para salvá-la em sua área de transferência.
+Insira no seu Projeto:
+
+Abra o arquivo 
+
+.env
+ da pasta backend do seu projeto.
+Substitua a linha do Gemini pela sua nova chave:
+env
+GEMINI_API_KEY=AIzaSy...sua_chave_gerada_aqui...
+Salve o arquivo!
+TIP
+
+O uso é gratuito? Sim! O plano básico (gratuito) do Google AI Studio oferece limites generosos para testes e desenvolvimento local, o que é mais do que suficiente para a entrega da sua VA2.
