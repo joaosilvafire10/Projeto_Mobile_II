@@ -240,7 +240,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           _buildDrawerItem(
             Icons.confirmation_number_outlined,
-            'Meus Chamados (${ticketProvider.totalTickets})',
+            user?.role == 'ADMIN'
+                ? 'Todos os Chamados (${ticketProvider.totalTickets})'
+                : user?.role == 'ANALISTA'
+                    ? 'Chamados do Depto (${ticketProvider.totalTickets})'
+                    : 'Meus Chamados (${ticketProvider.totalTickets})',
             () {
               Navigator.pop(context);
               setState(() => _currentIndex = 2);

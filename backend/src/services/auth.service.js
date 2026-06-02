@@ -122,6 +122,7 @@ class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
+        department: user.department,
       },
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn }

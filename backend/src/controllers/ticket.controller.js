@@ -22,7 +22,7 @@ class TicketController {
    */
   async getAll(req, res, next) {
     try {
-      const result = await ticketService.getAll(req.query, req.userId, req.userRole);
+      const result = await ticketService.getAll(req.query, req.userId, req.userRole, req.userDepartment);
       return res.status(200).json({
         success: true,
         ...result,
@@ -52,7 +52,7 @@ class TicketController {
    */
   async getById(req, res, next) {
     try {
-      const ticket = await ticketService.getById(req.params.id);
+      const ticket = await ticketService.getById(req.params.id, req.userId, req.userRole, req.userDepartment);
       return res.status(200).json({
         success: true,
         data: ticket,
@@ -71,7 +71,8 @@ class TicketController {
         req.params.id,
         req.body,
         req.userId,
-        req.userRole
+        req.userRole,
+        req.userDepartment
       );
       return res.status(200).json({
         success: true,
@@ -84,11 +85,32 @@ class TicketController {
   }
 
   /**
+   * PUT /api/tickets/:id/assign
+   */
+  async assignToMe(req, res, next) {
+    try {
+      const ticket = await ticketService.assignToMe(
+        req.params.id,
+        req.userId,
+        req.userRole,
+        req.userDepartment
+      );
+      return res.status(200).json({
+        success: true,
+        message: "Chamado atribuído com sucesso.",
+        data: ticket,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * DELETE /api/tickets/:id
    */
   async delete(req, res, next) {
     try {
-      await ticketService.delete(req.params.id, req.userId, req.userRole);
+      await ticketService.delete(req.params.id, req.userId, req.userRole, req.userDepartment);
       return res.status(200).json({
         success: true,
         message: "Chamado removido com sucesso.",

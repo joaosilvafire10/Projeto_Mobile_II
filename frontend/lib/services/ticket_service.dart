@@ -71,4 +71,10 @@ class TicketService {
   Future<void> delete(String id) async {
     await _api.dio.delete('/tickets/$id');
   }
+
+  // ASSIGN — PUT /api/tickets/:id/assign
+  Future<TicketModel> assignToMe(String id) async {
+    final response = await _api.dio.put('/tickets/$id/assign');
+    return TicketModel.fromMap(response.data['data'] as Map<String, dynamic>);
+  }
 }

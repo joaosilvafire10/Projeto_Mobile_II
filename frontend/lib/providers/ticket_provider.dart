@@ -129,6 +129,29 @@ class TicketProvider extends ChangeNotifier {
     }
   }
 
+  /// Atribui o ticket para o analista autenticado via PUT e reflete na lista local.
+  Future<bool> assignTicketToMe(String ticketId) async {
+    try {
+      final updated = await _service.assignToMe(ticketId);
+      final index = _tickets.indexWhere((t) => t.id == ticketId);
+      if (index != -1) {
+        final local = _tickets[index];
+        _tickets[index] = updated.copyWith(
+          chatHistory: local.chatHistory,
+          comments: local.comments,
+        );
+      } else {
+        _tickets.add(updated);
+      }
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = _dioError(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
   // ── Exclusão (Delete) ─────────────────────────────────────────────────────
 
   /// Remove ticket via DELETE e o retira da lista local.

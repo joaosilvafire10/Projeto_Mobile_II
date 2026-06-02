@@ -45,8 +45,8 @@ const router = Router();
  *                 default: MEDIA
  *               department:
  *                 type: string
- *                 enum: [TI, SUPORTE, INFRAESTRUTURA, DESENVOLVIMENTO, SEGURANCA, REDES, BANCO_DE_DADOS, GERAL]
- *                 default: GERAL
+ *                 enum: [TI, FINANCEIRO, CONTABILIDADE]
+ *                 default: TI
  *     responses:
  *       201:
  *         description: Chamado criado com sucesso
@@ -97,7 +97,7 @@ router.post("/", authMiddleware, validate(createTicketSchema), ticketController.
  *         name: department
  *         schema:
  *           type: string
- *           enum: [TI, SUPORTE, INFRAESTRUTURA, DESENVOLVIMENTO, SEGURANCA, REDES, BANCO_DE_DADOS, GERAL]
+ *           enum: [TI, FINANCEIRO, CONTABILIDADE]
  *       - in: query
  *         name: search
  *         schema:
@@ -218,7 +218,7 @@ router.get("/:id", authMiddleware, ticketController.getById);
  *                 enum: [BAIXA, MEDIA, ALTA, CRITICA]
  *               department:
  *                 type: string
- *                 enum: [TI, SUPORTE, INFRAESTRUTURA, DESENVOLVIMENTO, SEGURANCA, REDES, BANCO_DE_DADOS, GERAL]
+ *                 enum: [TI, FINANCEIRO, CONTABILIDADE]
  *               aiSummary:
  *                 type: string
  *     responses:
@@ -230,6 +230,31 @@ router.get("/:id", authMiddleware, ticketController.getById);
  *         description: Chamado não encontrado
  */
 router.put("/:id", authMiddleware, validate(updateTicketSchema), ticketController.update);
+
+/**
+ * @swagger
+ * /api/tickets/{id}/assign:
+ *   put:
+ *     summary: Atribuir chamado para o analista autenticado (atender chamado)
+ *     tags: [Chamados]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Chamado atribuído com sucesso
+ *       403:
+ *         description: Sem permissão ou papel incorreto
+ *       404:
+ *         description: Chamado não encontrado
+ */
+router.put("/:id/assign", authMiddleware, ticketController.assignToMe);
 
 /**
  * @swagger

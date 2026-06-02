@@ -17,18 +17,18 @@ const registerSchema = z.object({
     .min(6, "Senha deve ter pelo menos 6 caracteres.")
     .max(100, "Senha deve ter no máximo 100 caracteres."),
   role: z
-    .enum(["ADMIN", "TECNICO", "USUARIO"], {
-      errorMap: () => ({ message: "Role deve ser ADMIN, TECNICO ou USUARIO." }),
+    .enum(["ADMIN", "ANALISTA", "USUARIO"], {
+      errorMap: () => ({ message: "Role deve ser ADMIN, ANALISTA ou USUARIO." }),
     })
     .optional()
     .default("USUARIO"),
   department: z
     .enum(
-      ["TI", "SUPORTE", "INFRAESTRUTURA", "DESENVOLVIMENTO", "SEGURANCA", "REDES", "BANCO_DE_DADOS", "GERAL"],
-      { errorMap: () => ({ message: "Departamento inválido." }) }
+      ["TI", "FINANCEIRO", "CONTABILIDADE"],
+      { errorMap: () => ({ message: "Departamento inválido. Escolha entre TI, FINANCEIRO ou CONTABILIDADE." }) }
     )
     .optional()
-    .default("GERAL"),
+    .default("TI"),
 });
 
 const loginSchema = z.object({
@@ -48,10 +48,10 @@ const updateUserSchema = z.object({
   name: z.string().min(3).max(100).optional(),
   email: z.string().email("Email inválido.").optional(),
   role: z
-    .enum(["ADMIN", "TECNICO", "USUARIO"])
+    .enum(["ADMIN", "ANALISTA", "USUARIO"])
     .optional(),
   department: z
-    .enum(["TI", "SUPORTE", "INFRAESTRUTURA", "DESENVOLVIMENTO", "SEGURANCA", "REDES", "BANCO_DE_DADOS", "GERAL"])
+    .enum(["TI", "FINANCEIRO", "CONTABILIDADE"])
     .optional(),
   avatarUrl: z.string().url("URL inválida.").nullable().optional(),
   active: z.boolean().optional(),
@@ -78,11 +78,11 @@ const createTicketSchema = z.object({
     .default("MEDIA"),
   department: z
     .enum(
-      ["TI", "SUPORTE", "INFRAESTRUTURA", "DESENVOLVIMENTO", "SEGURANCA", "REDES", "BANCO_DE_DADOS", "GERAL"],
-      { errorMap: () => ({ message: "Departamento inválido." }) }
+      ["TI", "FINANCEIRO", "CONTABILIDADE"],
+      { errorMap: () => ({ message: "Departamento inválido. Escolha entre TI, FINANCEIRO ou CONTABILIDADE." }) }
     )
     .optional()
-    .default("GERAL"),
+    .default("TI"),
 });
 
 const updateTicketSchema = z.object({
@@ -95,9 +95,14 @@ const updateTicketSchema = z.object({
     .enum(["BAIXA", "MEDIA", "ALTA", "CRITICA"])
     .optional(),
   department: z
-    .enum(["TI", "SUPORTE", "INFRAESTRUTURA", "DESENVOLVIMENTO", "SEGURANCA", "REDES", "BANCO_DE_DADOS", "GERAL"])
+    .enum(["TI", "FINANCEIRO", "CONTABILIDADE"])
     .optional(),
   aiSummary: z.string().max(5000).nullable().optional(),
+  assignedToId: z.string().uuid("ID do analista deve ser um UUID válido.").nullable().optional(),
+});
+
+const assignTicketSchema = z.object({
+  assignedToId: z.string({ required_error: "ID do analista é obrigatório." }).uuid("ID do analista inválido."),
 });
 
 const ticketQuerySchema = z.object({
@@ -110,7 +115,7 @@ const ticketQuerySchema = z.object({
     .enum(["BAIXA", "MEDIA", "ALTA", "CRITICA"])
     .optional(),
   department: z
-    .enum(["TI", "SUPORTE", "INFRAESTRUTURA", "DESENVOLVIMENTO", "SEGURANCA", "REDES", "BANCO_DE_DADOS", "GERAL"])
+    .enum(["TI", "FINANCEIRO", "CONTABILIDADE"])
     .optional(),
   search: z.string().optional(),
 });
@@ -207,6 +212,7 @@ module.exports = {
   updateUserSchema,
   createTicketSchema,
   updateTicketSchema,
+  assignTicketSchema,
   ticketQuerySchema,
   createMessageSchema,
   aiTriageSchema,

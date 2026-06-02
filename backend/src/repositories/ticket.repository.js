@@ -16,6 +16,14 @@ class TicketRepository {
             department: true,
           },
         },
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            department: true,
+          },
+        },
         messages: true,
       },
     });
@@ -29,6 +37,14 @@ class TicketRepository {
       where: { id },
       include: {
         user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            department: true,
+          },
+        },
+        assignedTo: {
           select: {
             id: true,
             name: true,
@@ -85,6 +101,14 @@ class TicketRepository {
               department: true,
             },
           },
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              department: true,
+            },
+          },
           _count: {
             select: { messages: true },
           },
@@ -120,10 +144,28 @@ class TicketRepository {
             department: true,
           },
         },
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            department: true,
+          },
+        },
         messages: {
           orderBy: { createdAt: "asc" },
         },
       },
+    });
+  }
+
+  /**
+   * Atribui um chamado a um usuário.
+   */
+  async assignTo(ticketId, userId) {
+    return this.update(ticketId, {
+      assignedToId: userId,
+      status: "EM_ANDAMENTO",
     });
   }
 

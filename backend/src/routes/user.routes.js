@@ -114,10 +114,10 @@ router.get("/:id", authMiddleware, userController.getById);
  *                 format: email
  *               role:
  *                 type: string
- *                 enum: [ADMIN, TECNICO, USUARIO]
+ *                 enum: [ADMIN, ANALISTA, USUARIO]
  *               department:
  *                 type: string
- *                 enum: [TI, SUPORTE, INFRAESTRUTURA, DESENVOLVIMENTO, SEGURANCA, REDES, BANCO_DE_DADOS, GERAL]
+ *                 enum: [TI, FINANCEIRO, CONTABILIDADE]
  *               active:
  *                 type: boolean
  *     responses:

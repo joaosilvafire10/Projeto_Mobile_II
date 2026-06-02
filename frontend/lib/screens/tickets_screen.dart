@@ -39,109 +39,115 @@ class _TicketsScreenState extends State<TicketsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Meus Chamados'),
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            onPressed: () {
-              final scaffold = Scaffold.maybeOf(context);
-              if (scaffold != null && scaffold.hasDrawer) {
-                scaffold.openDrawer();
+    return Consumer2<TicketProvider, AuthProvider>(
+      builder: (context, tp, auth, _) {
+        final user = auth.currentUser;
+        final titleText = user?.role == 'ADMIN'
+            ? 'Todos os Chamados'
+            : user?.role == 'ANALISTA'
+                ? 'Chamados - ${user?.department ?? ""}'
+                : 'Meus Chamados';
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(titleText),
+            leading: Builder(
+              builder: (ctx) => IconButton(
+                icon: const Icon(Icons.menu_rounded),
+                onPressed: () {
+                  final scaffold = Scaffold.maybeOf(ctx);
+                  if (scaffold != null && scaffold.hasDrawer) {
+                    scaffold.openDrawer();
+                  }
+                },
+              ),
+            ),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(50),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                    color: AppTheme.surfaceCard,
+                    borderRadius: BorderRadius.circular(12)),
+                child: TabBar(
+                  controller: _tabController,
+                  indicator: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      borderRadius: BorderRadius.circular(12)),
+                  labelColor: Colors.white,
+                  unselectedLabelColor: AppTheme.textMuted,
+                  labelStyle:
+                      GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                  unselectedLabelStyle: GoogleFonts.inter(fontSize: 12),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  tabs: const [
+                    Tab(text: 'Todos'),
+                    Tab(text: 'Abertos'),
+                    Tab(text: 'Andamento'),
+                    Tab(text: 'Resolvidos'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          body: Builder(
+            builder: (context) {
+              // Indicador de carregamento
+              if (tp.isLoading) {
+                return const Center(child: CircularProgressIndicator());
               }
+
+              // Mensagem de erro / sem conexão
+              if (tp.errorMessage != null) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.wifi_off_rounded,
+                          size: 48, color: AppTheme.textMuted),
+                      const SizedBox(height: 16),
+                      Text(
+                        tp.errorMessage!,
+                        style: GoogleFonts.inter(
+                            fontSize: 14, color: AppTheme.textSecondary),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        onPressed: () => tp.fetchTickets(),
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: tp.fetchTickets,
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildTicketList(tp.tickets),
+                    _buildTicketList(tp.tickets
+                        .where((t) => t.status == TicketStatus.open)
+                        .toList()),
+                    _buildTicketList(tp.tickets
+                        .where((t) => t.status == TicketStatus.inProgress)
+                        .toList()),
+                    _buildTicketList(tp.tickets
+                        .where((t) =>
+                            t.status == TicketStatus.resolved ||
+                            t.status == TicketStatus.closed)
+                        .toList()),
+                  ],
+                ),
+              );
             },
           ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
-                borderRadius: BorderRadius.circular(12)),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                  gradient: AppTheme.primaryGradient,
-                  borderRadius: BorderRadius.circular(12)),
-              labelColor: Colors.white,
-              unselectedLabelColor: AppTheme.textMuted,
-              labelStyle:
-                  GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
-              unselectedLabelStyle: GoogleFonts.inter(fontSize: 12),
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: Colors.transparent,
-              tabs: const [
-                Tab(text: 'Todos'),
-                Tab(text: 'Abertos'),
-                Tab(text: 'Andamento'),
-                Tab(text: 'Resolvidos'),
-              ],
-            ),
-          ),
-        ),
-      ),
-      body: Consumer2<TicketProvider, AuthProvider>(
-        builder: (_, tp, auth, __) {
-          final userId = auth.currentUser?.id ?? '';
-
-          // Indicador de carregamento
-          if (tp.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          // Mensagem de erro / sem conexão
-          if (tp.errorMessage != null) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.wifi_off_rounded,
-                      size: 48, color: AppTheme.textMuted),
-                  const SizedBox(height: 16),
-                  Text(
-                    tp.errorMessage!,
-                    style: GoogleFonts.inter(
-                        fontSize: 14, color: AppTheme.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: () => tp.fetchTickets(),
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Tentar novamente'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: tp.fetchTickets,
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildTicketList(tp.getTicketsByUser(userId)),
-                _buildTicketList(tp
-                    .getTicketsByUser(userId)
-                    .where((t) => t.status == TicketStatus.open)
-                    .toList()),
-                _buildTicketList(tp
-                    .getTicketsByUser(userId)
-                    .where((t) => t.status == TicketStatus.inProgress)
-                    .toList()),
-                _buildTicketList(tp
-                    .getTicketsByUser(userId)
-                    .where((t) =>
-                        t.status == TicketStatus.resolved ||
-                        t.status == TicketStatus.closed)
-                    .toList()),
-              ],
-            ),
-          );
-        },
-      ),
+        );
+      },
     );
   }
 

@@ -20,6 +20,7 @@ class TicketModel {
   final List<MessageModel> comments;
   final String aiSummary;
   final String? assignedTo;
+  final String? assignedToId;
   final String? solution;
 
   TicketModel({
@@ -38,6 +39,7 @@ class TicketModel {
     this.comments = const [],
     this.aiSummary = '',
     this.assignedTo,
+    this.assignedToId,
     this.solution,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -53,7 +55,7 @@ class TicketModel {
       userName: map['user'] != null
           ? (map['user']['name'] as String? ?? '')
           : (map['userName'] as String? ?? ''),
-      department: map['department'] as String? ?? 'GERAL',
+      department: map['department'] as String? ?? 'TI',
       status: _parseStatus(map['status'] as String?),
       priority: _parsePriority(map['priority'] as String?),
       category: map['category'] != null
@@ -66,6 +68,11 @@ class TicketModel {
           ? DateTime.tryParse(map['resolvedAt'] as String)
           : null,
       aiSummary: map['aiSummary'] as String? ?? map['ai_summary'] as String? ?? '',
+      assignedTo: map['assignedTo'] != null
+          ? (map['assignedTo']['name'] as String?)
+          : (map['assignedTo'] as String?),
+      assignedToId: map['assignedToId'] as String? ?? map['assigned_to_id'] as String? ??
+          (map['assignedTo'] != null ? map['assignedTo']['id'] as String? : null),
       comments: map['messages'] != null
           ? (map['messages'] as List)
               .map((m) => MessageModel.fromMap(m as Map<String, dynamic>))
@@ -153,6 +160,7 @@ class TicketModel {
     List<MessageModel>? comments,
     String? aiSummary,
     String? assignedTo,
+    String? assignedToId,
     String? solution,
   }) {
     return TicketModel(
@@ -171,6 +179,7 @@ class TicketModel {
       comments: comments ?? this.comments,
       aiSummary: aiSummary ?? this.aiSummary,
       assignedTo: assignedTo ?? this.assignedTo,
+      assignedToId: assignedToId ?? this.assignedToId,
       solution: solution ?? this.solution,
     );
   }
@@ -192,6 +201,7 @@ class TicketModel {
       'comments': comments.map((m) => m.toMap()).toList(),
       'aiSummary': aiSummary,
       'assignedTo': assignedTo,
+      'assignedToId': assignedToId,
       'solution': solution,
     };
   }

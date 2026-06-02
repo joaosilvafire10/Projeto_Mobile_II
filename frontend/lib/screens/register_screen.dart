@@ -19,13 +19,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   
   String _selectedRole = 'USUARIO';
-  String _selectedDepartment = 'GERAL';
+  String _selectedDepartment = 'TI';
 
-  final List<String> _roles = ['ADMIN', 'TECNICO', 'USUARIO'];
-  final List<String> _departments = [
-    'TI', 'SUPORTE', 'INFRAESTRUTURA', 'DESENVOLVIMENTO', 
-    'SEGURANCA', 'REDES', 'BANCO_DE_DADOS', 'GERAL'
-  ];
+  final List<String> _roles = ['ADMIN', 'ANALISTA', 'USUARIO'];
+  final List<String> _departments = ['TI', 'FINANCEIRO', 'CONTABILIDADE'];
 
   @override
   void dispose() {
