@@ -14,24 +14,40 @@ class TicketService {
   /**
    * Busca um chamado por ID.
    */
-  async getById(id) {
+  async getById(id, userId, userRole, userDepartment) {
     const ticket = await ticketRepository.findById(id);
     if (!ticket) {
       const error = new Error("Chamado não encontrado.");
       error.statusCode = 404;
       throw error;
     }
+
+    // Se as informações de papel forem fornecidas, aplica regras de visibilidade
+    if (userRole) {
+      if (userRole === "USUARIO" && ticket.userId !== userId) {
+        const error = new Error("Sem permissão para visualizar este chamado.");
+        error.statusCode = 403;
+        throw error;
+      }
+      if (userRole === "ANALISTA" && ticket.department !== userDepartment) {
+        const error = new Error("Sem permissão para visualizar chamados de outro departamento.");
+        error.statusCode = 403;
+        throw error;
+      }
+    }
+
     return ticket;
   }
 
   /**
    * Lista chamados com filtros e paginação.
-   * Usuários comuns veem apenas seus próprios chamados.
+   * ADMIN vê todos, ANALISTA vê do seu departamento, USUARIO vê apenas os seus.
    */
-  async getAll(filters, userId, userRole) {
-    // Se for usuário comum, filtra apenas seus chamados
+  async getAll(filters, userId, userRole, userDepartment) {
     if (userRole === "USUARIO") {
       filters.userId = userId;
+    } else if (userRole === "ANALISTA") {
+      filters.department = userDepartment;
     }
     return ticketRepository.findAll(filters);
   }
@@ -39,12 +55,20 @@ class TicketService {
   /**
    * Atualiza um chamado.
    */
-  async update(id, data, userId, userRole) {
-    const ticket = await this.getById(id);
+  async update(id, data, userId, userRole, userDepartment) {
+    const ticket = await this.getById(id, userId, userRole, userDepartment);
 
-    // Verifica permissão: apenas dono, técnico ou admin podem atualizar
+    // Verifica permissão para atualizar:
+    // USUARIO só atualiza os próprios chamados
+    // ANALISTA só atualiza chamados do próprio departamento
     if (userRole === "USUARIO" && ticket.userId !== userId) {
       const error = new Error("Sem permissão para atualizar este chamado.");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    if (userRole === "ANALISTA" && ticket.department !== userDepartment) {
+      const error = new Error("Sem permissão para atualizar chamados de outro departamento.");
       error.statusCode = 403;
       throw error;
     }
@@ -53,10 +77,33 @@ class TicketService {
   }
 
   /**
+   * Atribui o chamado ao analista logado.
+   */
+  async assignToMe(id, userId, userRole, userDepartment) {
+    const ticket = await this.getById(id, userId, userRole, userDepartment);
+
+    // Apenas ADMIN ou ANALISTA podem se auto-atribuir chamados
+    if (userRole !== "ADMIN" && userRole !== "ANALISTA") {
+      const error = new Error("Apenas analistas e administradores podem atender chamados.");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Se for analista, o chamado deve ser do seu departamento
+    if (userRole === "ANALISTA" && ticket.department !== userDepartment) {
+      const error = new Error("Você só pode atender chamados do seu próprio departamento.");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    return ticketRepository.assignTo(id, userId);
+  }
+
+  /**
    * Remove um chamado.
    */
-  async delete(id, userId, userRole) {
-    const ticket = await this.getById(id);
+  async delete(id, userId, userRole, userDepartment) {
+    const ticket = await this.getById(id, userId, userRole, userDepartment);
 
     // Apenas admin ou dono podem deletar
     if (userRole !== "ADMIN" && ticket.userId !== userId) {

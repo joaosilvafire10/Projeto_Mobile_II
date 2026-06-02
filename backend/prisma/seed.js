@@ -28,16 +28,38 @@ async function main() {
   });
   console.log(`✅ Admin criado: ${admin.email}`);
 
-  const tecnico = await prisma.user.create({
+  const analistaTI = await prisma.user.create({
     data: {
-      name: "Carlos Técnico",
-      email: "tecnico@empresa.com",
+      name: "João da TI",
+      email: "analista.ti@empresa.com",
       password: hashedPassword,
-      role: "TECNICO",
-      department: "SUPORTE",
+      role: "ANALISTA",
+      department: "TI",
     },
   });
-  console.log(`✅ Técnico criado: ${tecnico.email}`);
+  console.log(`✅ Analista TI criado: ${analistaTI.email}`);
+
+  const analistaFin = await prisma.user.create({
+    data: {
+      name: "Beatriz Financeiro",
+      email: "analista.fin@empresa.com",
+      password: hashedPassword,
+      role: "ANALISTA",
+      department: "FINANCEIRO",
+    },
+  });
+  console.log(`✅ Analista Financeiro criado: ${analistaFin.email}`);
+
+  const analistaCont = await prisma.user.create({
+    data: {
+      name: "Lucas Contabilidade",
+      email: "analista.cont@empresa.com",
+      password: hashedPassword,
+      role: "ANALISTA",
+      department: "CONTABILIDADE",
+    },
+  });
+  console.log(`✅ Analista Contabilidade criado: ${analistaCont.email}`);
 
   const usuario = await prisma.user.create({
     data: {
@@ -45,21 +67,10 @@ async function main() {
       email: "usuario@empresa.com",
       password: hashedPassword,
       role: "USUARIO",
-      department: "GERAL",
+      department: "TI",
     },
   });
   console.log(`✅ Usuário criado: ${usuario.email}`);
-
-  const dev = await prisma.user.create({
-    data: {
-      name: "Ana Desenvolvedora",
-      email: "dev@empresa.com",
-      password: hashedPassword,
-      role: "TECNICO",
-      department: "DESENVOLVIMENTO",
-    },
-  });
-  console.log(`✅ Desenvolvedora criada: ${dev.email}`);
 
   // =============================================
   // CATEGORIAS E ATIVIDADES
@@ -130,6 +141,7 @@ async function main() {
   const atividadeWindows = catTI.activities.find(a => a.name === "Atualização de Windows");
   const atividadeRede = catTI.activities.find(a => a.name === "Problema de Rede");
   const atividadeRelatorio = catContabilidade.activities.find(a => a.name === "Relatório Contábil");
+  const atividadeReembolso = catFinanceiro.activities.find(a => a.name === "Reembolso");
 
   const ticket1 = await prisma.ticket.create({
     data: {
@@ -149,37 +161,55 @@ async function main() {
 
   const ticket2 = await prisma.ticket.create({
     data: {
-      title: "VPN não conecta na rede da empresa",
+      title: "Problema com rede Wi-Fi do escritório",
       description:
-        "Desde segunda-feira não consigo conectar na VPN corporativa. O cliente VPN mostra erro de timeout.",
+        "O Wi-Fi da sala de reunião principal está instável e caindo constantemente a cada 5 minutos.",
       status: "EM_ANDAMENTO",
       priority: "MEDIA",
-      department: "REDES",
+      department: "TI",
       categoryId: catTI.id,
       activityId: atividadeRede.id,
       aiSummary:
-        "Falha de conexão VPN com timeout. Possíveis causas: certificado expirado, firewall bloqueando, ou mudança de configuração no servidor VPN.",
+        "Conexão instável de Wi-Fi. Provável sobrecarga do AP ou interferência de canais. Recomenda-se verificação física e reboot do roteador.",
       userId: usuario.id,
+      assignedToId: analistaTI.id,
     },
   });
 
   const ticket3 = await prisma.ticket.create({
     data: {
-      title: "Sistema de RH exibindo dados errados",
+      title: "Reembolso de despesa de viagem de negócios",
       description:
-        "O relatório de folha de pagamento está mostrando valores incorretos para o departamento financeiro.",
-      status: "AGUARDANDO_USUARIO",
+        "Solicito o processamento do reembolso referente aos custos de transporte e hospedagem da viagem de visita a cliente.",
+      status: "EM_ANDAMENTO",
+      priority: "MEDIA",
+      department: "FINANCEIRO",
+      categoryId: catFinanceiro.id,
+      activityId: atividadeReembolso.id,
+      aiSummary:
+        "Solicitação de reembolso de viagem. Documentos pendentes anexados. Necessário conferência do setor financeiro.",
+      userId: usuario.id,
+      assignedToId: analistaFin.id,
+    },
+  });
+
+  const ticket4 = await prisma.ticket.create({
+    data: {
+      title: "Erro na geração do relatório de balanço",
+      description:
+        "Ao tentar emitir o relatório contábil do primeiro trimestre, o sistema exibe erro de timeout do banco de dados.",
+      status: "ABERTO",
       priority: "CRITICA",
-      department: "DESENVOLVIMENTO",
+      department: "CONTABILIDADE",
       categoryId: catContabilidade.id,
       activityId: atividadeRelatorio.id,
       aiSummary:
-        "Bug no módulo de folha de pagamento afetando cálculos do departamento financeiro. Necessária investigação urgente na query de cálculo.",
+        "Erro de timeout em relatório contábil. Possível volume excessivo de dados ou falta de índice na consulta. Requer análise de infra ou DBA.",
       userId: usuario.id,
     },
   });
 
-  console.log(`\n✅ ${3} chamados de exemplo criados.`);
+  console.log(`\n✅ ${4} chamados de exemplo criados.`);
 
   // Criar mensagens de exemplo
   await prisma.message.createMany({
@@ -225,9 +255,10 @@ async function main() {
   console.log("========================================");
   console.log("\nCredenciais de teste (senha: 123456):");
   console.log("  📧 admin@empresa.com    (ADMIN)");
-  console.log("  📧 tecnico@empresa.com  (TECNICO)");
+  console.log("  📧 analista.ti@empresa.com (ANALISTA - TI)");
+  console.log("  📧 analista.fin@empresa.com (ANALISTA - FINANCEIRO)");
+  console.log("  📧 analista.cont@empresa.com (ANALISTA - CONTABILIDADE)");
   console.log("  📧 usuario@empresa.com  (USUARIO)");
-  console.log("  📧 dev@empresa.com      (TECNICO)");
   console.log("\n📂 Categorias criadas:");
   console.log("  🔧 TI (7 atividades)");
   console.log("  📊 Contabilidade (5 atividades)");

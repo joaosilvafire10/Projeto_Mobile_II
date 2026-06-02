@@ -143,6 +143,7 @@ exports.Prisma.TicketScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   userId: 'userId',
+  assignedToId: 'assignedToId',
   categoryId: 'categoryId',
   activityId: 'activityId'
 };

@@ -137,6 +137,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = context.read<AuthProvider>().currentUser;
+
     return Consumer<TicketProvider>(
       builder: (context, tp, _) {
         final ticket = tp.getTicketById(widget.ticketId);
@@ -146,6 +148,15 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             body: const Center(child: Text('Chamado não encontrado')),
           );
         }
+
+        final canEdit = currentUser?.role == 'ADMIN' ||
+            (currentUser?.role == 'ANALISTA' && ticket.department == currentUser?.department);
+        final canDelete = currentUser?.role == 'ADMIN' || ticket.userId == currentUser?.id;
+        final canAssign = (currentUser?.role == 'ADMIN' ||
+                (currentUser?.role == 'ANALISTA' && ticket.department == currentUser?.department)) &&
+            ticket.assignedToId != currentUser?.id &&
+            ticket.status != TicketStatus.resolved &&
+            ticket.status != TicketStatus.closed;
 
         final (Color sc, String ss, IconData si) = switch (ticket.status) {
           TicketStatus.open => (AppTheme.accentOrange, 'Aberto', Icons.fiber_new_rounded),
@@ -166,17 +177,19 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             title: Text('#${ticket.id.substring(0, 8).toUpperCase()}',
                 style: GoogleFonts.firaCode(fontSize: 16, fontWeight: FontWeight.w600)),
             actions: [
-            IconButton(
-              icon: const Icon(Icons.edit_rounded, size: 22),
-              tooltip: 'Editar chamado',
-              onPressed: () => _showEditStatusSheet(ticket),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, size: 22, color: AppTheme.error),
-              tooltip: 'Excluir chamado',
-              onPressed: () => _confirmDelete(context),
-            ),
-          ],
+              if (canEdit)
+                IconButton(
+                  icon: const Icon(Icons.edit_rounded, size: 22),
+                  tooltip: 'Editar chamado',
+                  onPressed: () => _showEditStatusSheet(ticket),
+                ),
+              if (canDelete)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, size: 22, color: AppTheme.error),
+                  tooltip: 'Excluir chamado',
+                  onPressed: () => _confirmDelete(context),
+                ),
+            ],
           ),
           body: Column(
             children: [
@@ -223,6 +236,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                           _divider(),
                           _infoRow(Icons.person_outline, 'Solicitante', ticket.userName),
                           _divider(),
+                          _infoRow(Icons.support_agent_rounded, 'Atribuído a', ticket.assignedTo ?? 'Ninguém'),
+                          _divider(),
                           _infoRow(Icons.calendar_today_outlined, 'Criado em',
                               _dateFormat.format(ticket.createdAt)),
                           if (ticket.resolvedAt != null) ...[
@@ -233,6 +248,61 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         ]),
                       ),
                     ),
+
+                    if (canAssign) ...[
+                      const SizedBox(height: 16),
+                      FadeInDown(
+                        delay: const Duration(milliseconds: 150),
+                        duration: const Duration(milliseconds: 300),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: AppTheme.primaryGradient,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.accentBlue.withValues(alpha: 0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              final ok = await context
+                                  .read<TicketProvider>()
+                                  .assignTicketToMe(ticket.id);
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text(ok
+                                    ? 'Você assumiu o atendimento deste chamado!'
+                                    : 'Erro ao assumir chamado.'),
+                                backgroundColor: ok
+                                    ? AppTheme.success
+                                    : AppTheme.error,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                              ));
+                            },
+                            icon: const Icon(Icons.handshake_outlined, color: Colors.white),
+                            label: Text(
+                              'Atender / Direcionar para mim',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
 
                     // AI Summary

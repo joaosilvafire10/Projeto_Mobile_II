@@ -20,8 +20,8 @@ model User {
   name         String
   email        String   @unique
   password     String
-  role         String   @default("USUARIO")
-  department   String   @default("GERAL")
+  role         String   @default("USUARIO") // ADMIN, ANALISTA, USUARIO
+  department   String   @default("TI") // TI, FINANCEIRO, CONTABILIDADE
   avatarUrl    String?  @map("avatar_url")
   active       Boolean  @default(true)
   refreshToken String?  @map("refresh_token")
@@ -29,8 +29,9 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relações
-  tickets  Ticket[]
-  messages Message[]
+  tickets         Ticket[]
+  assignedTickets Ticket[]  @relation("AssignedAnalyst")
+  messages        Message[]
 
   @@map("users")
 }
@@ -41,19 +42,21 @@ model Ticket {
   description String
   status      String   @default("ABERTO")
   priority    String   @default("MEDIA")
-  department  String   @default("GERAL")
+  department  String   @default("TI")
   aiSummary   String?  @map("ai_summary")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relações
-  userId     String    @map("user_id")
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  categoryId String?   @map("category_id")
-  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  activityId String?   @map("activity_id")
-  activity   Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
-  messages   Message[]
+  userId       String    @map("user_id")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedToId String?   @map("assigned_to_id")
+  assignedTo   User?     @relation("AssignedAnalyst", fields: [assignedToId], references: [id], onDelete: SetNull)
+  categoryId   String?   @map("category_id")
+  category     Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  activityId   String?   @map("activity_id")
+  activity     Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  messages     Message[]
 
   @@index([userId])
   @@index([status])
@@ -61,6 +64,7 @@ model Ticket {
   @@index([department])
   @@index([categoryId])
   @@index([activityId])
+  @@index([assignedToId])
   @@map("tickets")
 }
 

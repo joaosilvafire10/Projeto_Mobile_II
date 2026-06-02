@@ -1226,11 +1226,13 @@ export namespace Prisma {
 
   export type UserCountOutputType = {
     tickets: number
+    assignedTickets: number
     messages: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tickets?: boolean | UserCountOutputTypeCountTicketsArgs
+    assignedTickets?: boolean | UserCountOutputTypeCountAssignedTicketsArgs
     messages?: boolean | UserCountOutputTypeCountMessagesArgs
   }
 
@@ -1249,6 +1251,13 @@ export namespace Prisma {
    * UserCountOutputType without action
    */
   export type UserCountOutputTypeCountTicketsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TicketWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountAssignedTicketsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TicketWhereInput
   }
 
@@ -1579,6 +1588,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     tickets?: boolean | User$ticketsArgs<ExtArgs>
+    assignedTickets?: boolean | User$assignedTicketsArgs<ExtArgs>
     messages?: boolean | User$messagesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
@@ -1628,6 +1638,7 @@ export namespace Prisma {
   export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "password" | "role" | "department" | "avatarUrl" | "active" | "refreshToken" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tickets?: boolean | User$ticketsArgs<ExtArgs>
+    assignedTickets?: boolean | User$assignedTicketsArgs<ExtArgs>
     messages?: boolean | User$messagesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -1638,6 +1649,7 @@ export namespace Prisma {
     name: "User"
     objects: {
       tickets: Prisma.$TicketPayload<ExtArgs>[]
+      assignedTickets: Prisma.$TicketPayload<ExtArgs>[]
       messages: Prisma.$MessagePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -2047,6 +2059,7 @@ export namespace Prisma {
   export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     tickets<T extends User$ticketsArgs<ExtArgs> = {}>(args?: Subset<T, User$ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    assignedTickets<T extends User$assignedTicketsArgs<ExtArgs> = {}>(args?: Subset<T, User$assignedTicketsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     messages<T extends User$messagesArgs<ExtArgs> = {}>(args?: Subset<T, User$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2498,6 +2511,30 @@ export namespace Prisma {
   }
 
   /**
+   * User.assignedTickets
+   */
+  export type User$assignedTicketsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Ticket
+     */
+    select?: TicketSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Ticket
+     */
+    omit?: TicketOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TicketInclude<ExtArgs> | null
+    where?: TicketWhereInput
+    orderBy?: TicketOrderByWithRelationInput | TicketOrderByWithRelationInput[]
+    cursor?: TicketWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TicketScalarFieldEnum | TicketScalarFieldEnum[]
+  }
+
+  /**
    * User.messages
    */
   export type User$messagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2561,6 +2598,7 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     userId: string | null
+    assignedToId: string | null
     categoryId: string | null
     activityId: string | null
   }
@@ -2576,6 +2614,7 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     userId: string | null
+    assignedToId: string | null
     categoryId: string | null
     activityId: string | null
   }
@@ -2591,6 +2630,7 @@ export namespace Prisma {
     createdAt: number
     updatedAt: number
     userId: number
+    assignedToId: number
     categoryId: number
     activityId: number
     _all: number
@@ -2608,6 +2648,7 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     userId?: true
+    assignedToId?: true
     categoryId?: true
     activityId?: true
   }
@@ -2623,6 +2664,7 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     userId?: true
+    assignedToId?: true
     categoryId?: true
     activityId?: true
   }
@@ -2638,6 +2680,7 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     userId?: true
+    assignedToId?: true
     categoryId?: true
     activityId?: true
     _all?: true
@@ -2726,6 +2769,7 @@ export namespace Prisma {
     createdAt: Date
     updatedAt: Date
     userId: string
+    assignedToId: string | null
     categoryId: string | null
     activityId: string | null
     _count: TicketCountAggregateOutputType | null
@@ -2758,9 +2802,11 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
+    assignedToId?: boolean
     categoryId?: boolean
     activityId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    assignedTo?: boolean | Ticket$assignedToArgs<ExtArgs>
     category?: boolean | Ticket$categoryArgs<ExtArgs>
     activity?: boolean | Ticket$activityArgs<ExtArgs>
     messages?: boolean | Ticket$messagesArgs<ExtArgs>
@@ -2778,9 +2824,11 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
+    assignedToId?: boolean
     categoryId?: boolean
     activityId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    assignedTo?: boolean | Ticket$assignedToArgs<ExtArgs>
     category?: boolean | Ticket$categoryArgs<ExtArgs>
     activity?: boolean | Ticket$activityArgs<ExtArgs>
   }, ExtArgs["result"]["ticket"]>
@@ -2796,9 +2844,11 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
+    assignedToId?: boolean
     categoryId?: boolean
     activityId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    assignedTo?: boolean | Ticket$assignedToArgs<ExtArgs>
     category?: boolean | Ticket$categoryArgs<ExtArgs>
     activity?: boolean | Ticket$activityArgs<ExtArgs>
   }, ExtArgs["result"]["ticket"]>
@@ -2814,13 +2864,15 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
+    assignedToId?: boolean
     categoryId?: boolean
     activityId?: boolean
   }
 
-  export type TicketOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "status" | "priority" | "department" | "aiSummary" | "createdAt" | "updatedAt" | "userId" | "categoryId" | "activityId", ExtArgs["result"]["ticket"]>
+  export type TicketOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "status" | "priority" | "department" | "aiSummary" | "createdAt" | "updatedAt" | "userId" | "assignedToId" | "categoryId" | "activityId", ExtArgs["result"]["ticket"]>
   export type TicketInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    assignedTo?: boolean | Ticket$assignedToArgs<ExtArgs>
     category?: boolean | Ticket$categoryArgs<ExtArgs>
     activity?: boolean | Ticket$activityArgs<ExtArgs>
     messages?: boolean | Ticket$messagesArgs<ExtArgs>
@@ -2828,11 +2880,13 @@ export namespace Prisma {
   }
   export type TicketIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    assignedTo?: boolean | Ticket$assignedToArgs<ExtArgs>
     category?: boolean | Ticket$categoryArgs<ExtArgs>
     activity?: boolean | Ticket$activityArgs<ExtArgs>
   }
   export type TicketIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    assignedTo?: boolean | Ticket$assignedToArgs<ExtArgs>
     category?: boolean | Ticket$categoryArgs<ExtArgs>
     activity?: boolean | Ticket$activityArgs<ExtArgs>
   }
@@ -2841,6 +2895,7 @@ export namespace Prisma {
     name: "Ticket"
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
+      assignedTo: Prisma.$UserPayload<ExtArgs> | null
       category: Prisma.$CategoryPayload<ExtArgs> | null
       activity: Prisma.$ActivityPayload<ExtArgs> | null
       messages: Prisma.$MessagePayload<ExtArgs>[]
@@ -2856,6 +2911,7 @@ export namespace Prisma {
       createdAt: Date
       updatedAt: Date
       userId: string
+      assignedToId: string | null
       categoryId: string | null
       activityId: string | null
     }, ExtArgs["result"]["ticket"]>
@@ -3253,6 +3309,7 @@ export namespace Prisma {
   export interface Prisma__TicketClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    assignedTo<T extends Ticket$assignedToArgs<ExtArgs> = {}>(args?: Subset<T, Ticket$assignedToArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     category<T extends Ticket$categoryArgs<ExtArgs> = {}>(args?: Subset<T, Ticket$categoryArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     activity<T extends Ticket$activityArgs<ExtArgs> = {}>(args?: Subset<T, Ticket$activityArgs<ExtArgs>>): Prisma__ActivityClient<$Result.GetResult<Prisma.$ActivityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     messages<T extends Ticket$messagesArgs<ExtArgs> = {}>(args?: Subset<T, Ticket$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3295,6 +3352,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"Ticket", 'DateTime'>
     readonly updatedAt: FieldRef<"Ticket", 'DateTime'>
     readonly userId: FieldRef<"Ticket", 'String'>
+    readonly assignedToId: FieldRef<"Ticket", 'String'>
     readonly categoryId: FieldRef<"Ticket", 'String'>
     readonly activityId: FieldRef<"Ticket", 'String'>
   }
@@ -3688,6 +3746,25 @@ export namespace Prisma {
      * Limit how many Tickets to delete.
      */
     limit?: number
+  }
+
+  /**
+   * Ticket.assignedTo
+   */
+  export type Ticket$assignedToArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
   }
 
   /**
@@ -7127,6 +7204,7 @@ export namespace Prisma {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     userId: 'userId',
+    assignedToId: 'assignedToId',
     categoryId: 'categoryId',
     activityId: 'activityId'
   };
@@ -7239,6 +7317,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     tickets?: TicketListRelationFilter
+    assignedTickets?: TicketListRelationFilter
     messages?: MessageListRelationFilter
   }
 
@@ -7255,6 +7334,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     tickets?: TicketOrderByRelationAggregateInput
+    assignedTickets?: TicketOrderByRelationAggregateInput
     messages?: MessageOrderByRelationAggregateInput
   }
 
@@ -7274,6 +7354,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     tickets?: TicketListRelationFilter
+    assignedTickets?: TicketListRelationFilter
     messages?: MessageListRelationFilter
   }, "id" | "email">
 
@@ -7325,9 +7406,11 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Ticket"> | Date | string
     updatedAt?: DateTimeFilter<"Ticket"> | Date | string
     userId?: StringFilter<"Ticket"> | string
+    assignedToId?: StringNullableFilter<"Ticket"> | string | null
     categoryId?: StringNullableFilter<"Ticket"> | string | null
     activityId?: StringNullableFilter<"Ticket"> | string | null
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    assignedTo?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     category?: XOR<CategoryNullableScalarRelationFilter, CategoryWhereInput> | null
     activity?: XOR<ActivityNullableScalarRelationFilter, ActivityWhereInput> | null
     messages?: MessageListRelationFilter
@@ -7344,9 +7427,11 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
+    assignedToId?: SortOrderInput | SortOrder
     categoryId?: SortOrderInput | SortOrder
     activityId?: SortOrderInput | SortOrder
     user?: UserOrderByWithRelationInput
+    assignedTo?: UserOrderByWithRelationInput
     category?: CategoryOrderByWithRelationInput
     activity?: ActivityOrderByWithRelationInput
     messages?: MessageOrderByRelationAggregateInput
@@ -7366,9 +7451,11 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Ticket"> | Date | string
     updatedAt?: DateTimeFilter<"Ticket"> | Date | string
     userId?: StringFilter<"Ticket"> | string
+    assignedToId?: StringNullableFilter<"Ticket"> | string | null
     categoryId?: StringNullableFilter<"Ticket"> | string | null
     activityId?: StringNullableFilter<"Ticket"> | string | null
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    assignedTo?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     category?: XOR<CategoryNullableScalarRelationFilter, CategoryWhereInput> | null
     activity?: XOR<ActivityNullableScalarRelationFilter, ActivityWhereInput> | null
     messages?: MessageListRelationFilter
@@ -7385,6 +7472,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
+    assignedToId?: SortOrderInput | SortOrder
     categoryId?: SortOrderInput | SortOrder
     activityId?: SortOrderInput | SortOrder
     _count?: TicketCountOrderByAggregateInput
@@ -7406,6 +7494,7 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"Ticket"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Ticket"> | Date | string
     userId?: StringWithAggregatesFilter<"Ticket"> | string
+    assignedToId?: StringNullableWithAggregatesFilter<"Ticket"> | string | null
     categoryId?: StringNullableWithAggregatesFilter<"Ticket"> | string | null
     activityId?: StringNullableWithAggregatesFilter<"Ticket"> | string | null
   }
@@ -7618,6 +7707,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tickets?: TicketCreateNestedManyWithoutUserInput
+    assignedTickets?: TicketCreateNestedManyWithoutAssignedToInput
     messages?: MessageCreateNestedManyWithoutUserInput
   }
 
@@ -7634,6 +7724,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tickets?: TicketUncheckedCreateNestedManyWithoutUserInput
+    assignedTickets?: TicketUncheckedCreateNestedManyWithoutAssignedToInput
     messages?: MessageUncheckedCreateNestedManyWithoutUserInput
   }
 
@@ -7650,6 +7741,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tickets?: TicketUpdateManyWithoutUserNestedInput
+    assignedTickets?: TicketUpdateManyWithoutAssignedToNestedInput
     messages?: MessageUpdateManyWithoutUserNestedInput
   }
 
@@ -7666,6 +7758,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tickets?: TicketUncheckedUpdateManyWithoutUserNestedInput
+    assignedTickets?: TicketUncheckedUpdateManyWithoutAssignedToNestedInput
     messages?: MessageUncheckedUpdateManyWithoutUserNestedInput
   }
 
@@ -7722,6 +7815,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutTicketsInput
+    assignedTo?: UserCreateNestedOneWithoutAssignedTicketsInput
     category?: CategoryCreateNestedOneWithoutTicketsInput
     activity?: ActivityCreateNestedOneWithoutTicketsInput
     messages?: MessageCreateNestedManyWithoutTicketInput
@@ -7738,6 +7832,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
+    assignedToId?: string | null
     categoryId?: string | null
     activityId?: string | null
     messages?: MessageUncheckedCreateNestedManyWithoutTicketInput
@@ -7754,6 +7849,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutTicketsNestedInput
+    assignedTo?: UserUpdateOneWithoutAssignedTicketsNestedInput
     category?: CategoryUpdateOneWithoutTicketsNestedInput
     activity?: ActivityUpdateOneWithoutTicketsNestedInput
     messages?: MessageUpdateManyWithoutTicketNestedInput
@@ -7770,6 +7866,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
+    assignedToId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     activityId?: NullableStringFieldUpdateOperationsInput | string | null
     messages?: MessageUncheckedUpdateManyWithoutTicketNestedInput
@@ -7786,6 +7883,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
+    assignedToId?: string | null
     categoryId?: string | null
     activityId?: string | null
   }
@@ -7813,6 +7911,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
+    assignedToId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     activityId?: NullableStringFieldUpdateOperationsInput | string | null
   }
@@ -8194,6 +8293,11 @@ export namespace Prisma {
     isNot?: UserWhereInput
   }
 
+  export type UserNullableScalarRelationFilter = {
+    is?: UserWhereInput | null
+    isNot?: UserWhereInput | null
+  }
+
   export type CategoryNullableScalarRelationFilter = {
     is?: CategoryWhereInput | null
     isNot?: CategoryWhereInput | null
@@ -8215,6 +8319,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
+    assignedToId?: SortOrder
     categoryId?: SortOrder
     activityId?: SortOrder
   }
@@ -8230,6 +8335,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
+    assignedToId?: SortOrder
     categoryId?: SortOrder
     activityId?: SortOrder
   }
@@ -8245,6 +8351,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
+    assignedToId?: SortOrder
     categoryId?: SortOrder
     activityId?: SortOrder
   }
@@ -8331,11 +8438,6 @@ export namespace Prisma {
     isNot?: TicketWhereInput
   }
 
-  export type UserNullableScalarRelationFilter = {
-    is?: UserWhereInput | null
-    isNot?: UserWhereInput | null
-  }
-
   export type MessageCountOrderByAggregateInput = {
     id?: SortOrder
     content?: SortOrder
@@ -8370,6 +8472,13 @@ export namespace Prisma {
     connect?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
   }
 
+  export type TicketCreateNestedManyWithoutAssignedToInput = {
+    create?: XOR<TicketCreateWithoutAssignedToInput, TicketUncheckedCreateWithoutAssignedToInput> | TicketCreateWithoutAssignedToInput[] | TicketUncheckedCreateWithoutAssignedToInput[]
+    connectOrCreate?: TicketCreateOrConnectWithoutAssignedToInput | TicketCreateOrConnectWithoutAssignedToInput[]
+    createMany?: TicketCreateManyAssignedToInputEnvelope
+    connect?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
+  }
+
   export type MessageCreateNestedManyWithoutUserInput = {
     create?: XOR<MessageCreateWithoutUserInput, MessageUncheckedCreateWithoutUserInput> | MessageCreateWithoutUserInput[] | MessageUncheckedCreateWithoutUserInput[]
     connectOrCreate?: MessageCreateOrConnectWithoutUserInput | MessageCreateOrConnectWithoutUserInput[]
@@ -8381,6 +8490,13 @@ export namespace Prisma {
     create?: XOR<TicketCreateWithoutUserInput, TicketUncheckedCreateWithoutUserInput> | TicketCreateWithoutUserInput[] | TicketUncheckedCreateWithoutUserInput[]
     connectOrCreate?: TicketCreateOrConnectWithoutUserInput | TicketCreateOrConnectWithoutUserInput[]
     createMany?: TicketCreateManyUserInputEnvelope
+    connect?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
+  }
+
+  export type TicketUncheckedCreateNestedManyWithoutAssignedToInput = {
+    create?: XOR<TicketCreateWithoutAssignedToInput, TicketUncheckedCreateWithoutAssignedToInput> | TicketCreateWithoutAssignedToInput[] | TicketUncheckedCreateWithoutAssignedToInput[]
+    connectOrCreate?: TicketCreateOrConnectWithoutAssignedToInput | TicketCreateOrConnectWithoutAssignedToInput[]
+    createMany?: TicketCreateManyAssignedToInputEnvelope
     connect?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
   }
 
@@ -8421,6 +8537,20 @@ export namespace Prisma {
     deleteMany?: TicketScalarWhereInput | TicketScalarWhereInput[]
   }
 
+  export type TicketUpdateManyWithoutAssignedToNestedInput = {
+    create?: XOR<TicketCreateWithoutAssignedToInput, TicketUncheckedCreateWithoutAssignedToInput> | TicketCreateWithoutAssignedToInput[] | TicketUncheckedCreateWithoutAssignedToInput[]
+    connectOrCreate?: TicketCreateOrConnectWithoutAssignedToInput | TicketCreateOrConnectWithoutAssignedToInput[]
+    upsert?: TicketUpsertWithWhereUniqueWithoutAssignedToInput | TicketUpsertWithWhereUniqueWithoutAssignedToInput[]
+    createMany?: TicketCreateManyAssignedToInputEnvelope
+    set?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
+    disconnect?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
+    delete?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
+    connect?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
+    update?: TicketUpdateWithWhereUniqueWithoutAssignedToInput | TicketUpdateWithWhereUniqueWithoutAssignedToInput[]
+    updateMany?: TicketUpdateManyWithWhereWithoutAssignedToInput | TicketUpdateManyWithWhereWithoutAssignedToInput[]
+    deleteMany?: TicketScalarWhereInput | TicketScalarWhereInput[]
+  }
+
   export type MessageUpdateManyWithoutUserNestedInput = {
     create?: XOR<MessageCreateWithoutUserInput, MessageUncheckedCreateWithoutUserInput> | MessageCreateWithoutUserInput[] | MessageUncheckedCreateWithoutUserInput[]
     connectOrCreate?: MessageCreateOrConnectWithoutUserInput | MessageCreateOrConnectWithoutUserInput[]
@@ -8449,6 +8579,20 @@ export namespace Prisma {
     deleteMany?: TicketScalarWhereInput | TicketScalarWhereInput[]
   }
 
+  export type TicketUncheckedUpdateManyWithoutAssignedToNestedInput = {
+    create?: XOR<TicketCreateWithoutAssignedToInput, TicketUncheckedCreateWithoutAssignedToInput> | TicketCreateWithoutAssignedToInput[] | TicketUncheckedCreateWithoutAssignedToInput[]
+    connectOrCreate?: TicketCreateOrConnectWithoutAssignedToInput | TicketCreateOrConnectWithoutAssignedToInput[]
+    upsert?: TicketUpsertWithWhereUniqueWithoutAssignedToInput | TicketUpsertWithWhereUniqueWithoutAssignedToInput[]
+    createMany?: TicketCreateManyAssignedToInputEnvelope
+    set?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
+    disconnect?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
+    delete?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
+    connect?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
+    update?: TicketUpdateWithWhereUniqueWithoutAssignedToInput | TicketUpdateWithWhereUniqueWithoutAssignedToInput[]
+    updateMany?: TicketUpdateManyWithWhereWithoutAssignedToInput | TicketUpdateManyWithWhereWithoutAssignedToInput[]
+    deleteMany?: TicketScalarWhereInput | TicketScalarWhereInput[]
+  }
+
   export type MessageUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<MessageCreateWithoutUserInput, MessageUncheckedCreateWithoutUserInput> | MessageCreateWithoutUserInput[] | MessageUncheckedCreateWithoutUserInput[]
     connectOrCreate?: MessageCreateOrConnectWithoutUserInput | MessageCreateOrConnectWithoutUserInput[]
@@ -8466,6 +8610,12 @@ export namespace Prisma {
   export type UserCreateNestedOneWithoutTicketsInput = {
     create?: XOR<UserCreateWithoutTicketsInput, UserUncheckedCreateWithoutTicketsInput>
     connectOrCreate?: UserCreateOrConnectWithoutTicketsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutAssignedTicketsInput = {
+    create?: XOR<UserCreateWithoutAssignedTicketsInput, UserUncheckedCreateWithoutAssignedTicketsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAssignedTicketsInput
     connect?: UserWhereUniqueInput
   }
 
@@ -8501,6 +8651,16 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutTicketsInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutTicketsInput, UserUpdateWithoutTicketsInput>, UserUncheckedUpdateWithoutTicketsInput>
+  }
+
+  export type UserUpdateOneWithoutAssignedTicketsNestedInput = {
+    create?: XOR<UserCreateWithoutAssignedTicketsInput, UserUncheckedCreateWithoutAssignedTicketsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAssignedTicketsInput
+    upsert?: UserUpsertWithoutAssignedTicketsInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAssignedTicketsInput, UserUpdateWithoutAssignedTicketsInput>, UserUncheckedUpdateWithoutAssignedTicketsInput>
   }
 
   export type CategoryUpdateOneWithoutTicketsNestedInput = {
@@ -8853,6 +9013,7 @@ export namespace Prisma {
     aiSummary?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    assignedTo?: UserCreateNestedOneWithoutAssignedTicketsInput
     category?: CategoryCreateNestedOneWithoutTicketsInput
     activity?: ActivityCreateNestedOneWithoutTicketsInput
     messages?: MessageCreateNestedManyWithoutTicketInput
@@ -8868,6 +9029,7 @@ export namespace Prisma {
     aiSummary?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    assignedToId?: string | null
     categoryId?: string | null
     activityId?: string | null
     messages?: MessageUncheckedCreateNestedManyWithoutTicketInput
@@ -8880,6 +9042,47 @@ export namespace Prisma {
 
   export type TicketCreateManyUserInputEnvelope = {
     data: TicketCreateManyUserInput | TicketCreateManyUserInput[]
+  }
+
+  export type TicketCreateWithoutAssignedToInput = {
+    id?: string
+    title: string
+    description: string
+    status?: string
+    priority?: string
+    department?: string
+    aiSummary?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutTicketsInput
+    category?: CategoryCreateNestedOneWithoutTicketsInput
+    activity?: ActivityCreateNestedOneWithoutTicketsInput
+    messages?: MessageCreateNestedManyWithoutTicketInput
+  }
+
+  export type TicketUncheckedCreateWithoutAssignedToInput = {
+    id?: string
+    title: string
+    description: string
+    status?: string
+    priority?: string
+    department?: string
+    aiSummary?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    userId: string
+    categoryId?: string | null
+    activityId?: string | null
+    messages?: MessageUncheckedCreateNestedManyWithoutTicketInput
+  }
+
+  export type TicketCreateOrConnectWithoutAssignedToInput = {
+    where: TicketWhereUniqueInput
+    create: XOR<TicketCreateWithoutAssignedToInput, TicketUncheckedCreateWithoutAssignedToInput>
+  }
+
+  export type TicketCreateManyAssignedToInputEnvelope = {
+    data: TicketCreateManyAssignedToInput | TicketCreateManyAssignedToInput[]
   }
 
   export type MessageCreateWithoutUserInput = {
@@ -8937,8 +9140,25 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Ticket"> | Date | string
     updatedAt?: DateTimeFilter<"Ticket"> | Date | string
     userId?: StringFilter<"Ticket"> | string
+    assignedToId?: StringNullableFilter<"Ticket"> | string | null
     categoryId?: StringNullableFilter<"Ticket"> | string | null
     activityId?: StringNullableFilter<"Ticket"> | string | null
+  }
+
+  export type TicketUpsertWithWhereUniqueWithoutAssignedToInput = {
+    where: TicketWhereUniqueInput
+    update: XOR<TicketUpdateWithoutAssignedToInput, TicketUncheckedUpdateWithoutAssignedToInput>
+    create: XOR<TicketCreateWithoutAssignedToInput, TicketUncheckedCreateWithoutAssignedToInput>
+  }
+
+  export type TicketUpdateWithWhereUniqueWithoutAssignedToInput = {
+    where: TicketWhereUniqueInput
+    data: XOR<TicketUpdateWithoutAssignedToInput, TicketUncheckedUpdateWithoutAssignedToInput>
+  }
+
+  export type TicketUpdateManyWithWhereWithoutAssignedToInput = {
+    where: TicketScalarWhereInput
+    data: XOR<TicketUpdateManyMutationInput, TicketUncheckedUpdateManyWithoutAssignedToInput>
   }
 
   export type MessageUpsertWithWhereUniqueWithoutUserInput = {
@@ -8981,6 +9201,7 @@ export namespace Prisma {
     refreshToken?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    assignedTickets?: TicketCreateNestedManyWithoutAssignedToInput
     messages?: MessageCreateNestedManyWithoutUserInput
   }
 
@@ -8996,12 +9217,50 @@ export namespace Prisma {
     refreshToken?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    assignedTickets?: TicketUncheckedCreateNestedManyWithoutAssignedToInput
     messages?: MessageUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTicketsInput = {
     where: UserWhereUniqueInput
     create: XOR<UserCreateWithoutTicketsInput, UserUncheckedCreateWithoutTicketsInput>
+  }
+
+  export type UserCreateWithoutAssignedTicketsInput = {
+    id?: string
+    name: string
+    email: string
+    password: string
+    role?: string
+    department?: string
+    avatarUrl?: string | null
+    active?: boolean
+    refreshToken?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tickets?: TicketCreateNestedManyWithoutUserInput
+    messages?: MessageCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutAssignedTicketsInput = {
+    id?: string
+    name: string
+    email: string
+    password: string
+    role?: string
+    department?: string
+    avatarUrl?: string | null
+    active?: boolean
+    refreshToken?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tickets?: TicketUncheckedCreateNestedManyWithoutUserInput
+    messages?: MessageUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutAssignedTicketsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutAssignedTicketsInput, UserUncheckedCreateWithoutAssignedTicketsInput>
   }
 
   export type CategoryCreateWithoutTicketsInput = {
@@ -9102,6 +9361,7 @@ export namespace Prisma {
     refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedTickets?: TicketUpdateManyWithoutAssignedToNestedInput
     messages?: MessageUpdateManyWithoutUserNestedInput
   }
 
@@ -9117,6 +9377,50 @@ export namespace Prisma {
     refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedTickets?: TicketUncheckedUpdateManyWithoutAssignedToNestedInput
+    messages?: MessageUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUpsertWithoutAssignedTicketsInput = {
+    update: XOR<UserUpdateWithoutAssignedTicketsInput, UserUncheckedUpdateWithoutAssignedTicketsInput>
+    create: XOR<UserCreateWithoutAssignedTicketsInput, UserUncheckedCreateWithoutAssignedTicketsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutAssignedTicketsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutAssignedTicketsInput, UserUncheckedUpdateWithoutAssignedTicketsInput>
+  }
+
+  export type UserUpdateWithoutAssignedTicketsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    department?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tickets?: TicketUpdateManyWithoutUserNestedInput
+    messages?: MessageUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutAssignedTicketsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    department?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    active?: BoolFieldUpdateOperationsInput | boolean
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tickets?: TicketUncheckedUpdateManyWithoutUserNestedInput
     messages?: MessageUncheckedUpdateManyWithoutUserNestedInput
   }
 
@@ -9238,6 +9542,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutTicketsInput
+    assignedTo?: UserCreateNestedOneWithoutAssignedTicketsInput
     activity?: ActivityCreateNestedOneWithoutTicketsInput
     messages?: MessageCreateNestedManyWithoutTicketInput
   }
@@ -9253,6 +9558,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
+    assignedToId?: string | null
     activityId?: string | null
     messages?: MessageUncheckedCreateNestedManyWithoutTicketInput
   }
@@ -9347,6 +9653,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutTicketsInput
+    assignedTo?: UserCreateNestedOneWithoutAssignedTicketsInput
     category?: CategoryCreateNestedOneWithoutTicketsInput
     messages?: MessageCreateNestedManyWithoutTicketInput
   }
@@ -9362,6 +9669,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
+    assignedToId?: string | null
     categoryId?: string | null
     messages?: MessageUncheckedCreateNestedManyWithoutTicketInput
   }
@@ -9433,6 +9741,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutTicketsInput
+    assignedTo?: UserCreateNestedOneWithoutAssignedTicketsInput
     category?: CategoryCreateNestedOneWithoutTicketsInput
     activity?: ActivityCreateNestedOneWithoutTicketsInput
   }
@@ -9448,6 +9757,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
+    assignedToId?: string | null
     categoryId?: string | null
     activityId?: string | null
   }
@@ -9470,6 +9780,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tickets?: TicketCreateNestedManyWithoutUserInput
+    assignedTickets?: TicketCreateNestedManyWithoutAssignedToInput
   }
 
   export type UserUncheckedCreateWithoutMessagesInput = {
@@ -9485,6 +9796,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tickets?: TicketUncheckedCreateNestedManyWithoutUserInput
+    assignedTickets?: TicketUncheckedCreateNestedManyWithoutAssignedToInput
   }
 
   export type UserCreateOrConnectWithoutMessagesInput = {
@@ -9514,6 +9826,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutTicketsNestedInput
+    assignedTo?: UserUpdateOneWithoutAssignedTicketsNestedInput
     category?: CategoryUpdateOneWithoutTicketsNestedInput
     activity?: ActivityUpdateOneWithoutTicketsNestedInput
   }
@@ -9529,6 +9842,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
+    assignedToId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     activityId?: NullableStringFieldUpdateOperationsInput | string | null
   }
@@ -9557,6 +9871,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tickets?: TicketUpdateManyWithoutUserNestedInput
+    assignedTickets?: TicketUpdateManyWithoutAssignedToNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMessagesInput = {
@@ -9572,6 +9887,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tickets?: TicketUncheckedUpdateManyWithoutUserNestedInput
+    assignedTickets?: TicketUncheckedUpdateManyWithoutAssignedToNestedInput
   }
 
   export type TicketCreateManyUserInput = {
@@ -9584,6 +9900,22 @@ export namespace Prisma {
     aiSummary?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    assignedToId?: string | null
+    categoryId?: string | null
+    activityId?: string | null
+  }
+
+  export type TicketCreateManyAssignedToInput = {
+    id?: string
+    title: string
+    description: string
+    status?: string
+    priority?: string
+    department?: string
+    aiSummary?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    userId: string
     categoryId?: string | null
     activityId?: string | null
   }
@@ -9606,6 +9938,7 @@ export namespace Prisma {
     aiSummary?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedTo?: UserUpdateOneWithoutAssignedTicketsNestedInput
     category?: CategoryUpdateOneWithoutTicketsNestedInput
     activity?: ActivityUpdateOneWithoutTicketsNestedInput
     messages?: MessageUpdateManyWithoutTicketNestedInput
@@ -9621,6 +9954,7 @@ export namespace Prisma {
     aiSummary?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedToId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     activityId?: NullableStringFieldUpdateOperationsInput | string | null
     messages?: MessageUncheckedUpdateManyWithoutTicketNestedInput
@@ -9636,6 +9970,54 @@ export namespace Prisma {
     aiSummary?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedToId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    activityId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type TicketUpdateWithoutAssignedToInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    priority?: StringFieldUpdateOperationsInput | string
+    department?: StringFieldUpdateOperationsInput | string
+    aiSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutTicketsNestedInput
+    category?: CategoryUpdateOneWithoutTicketsNestedInput
+    activity?: ActivityUpdateOneWithoutTicketsNestedInput
+    messages?: MessageUpdateManyWithoutTicketNestedInput
+  }
+
+  export type TicketUncheckedUpdateWithoutAssignedToInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    priority?: StringFieldUpdateOperationsInput | string
+    department?: StringFieldUpdateOperationsInput | string
+    aiSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: StringFieldUpdateOperationsInput | string
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    activityId?: NullableStringFieldUpdateOperationsInput | string | null
+    messages?: MessageUncheckedUpdateManyWithoutTicketNestedInput
+  }
+
+  export type TicketUncheckedUpdateManyWithoutAssignedToInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    priority?: StringFieldUpdateOperationsInput | string
+    department?: StringFieldUpdateOperationsInput | string
+    aiSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: StringFieldUpdateOperationsInput | string
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     activityId?: NullableStringFieldUpdateOperationsInput | string | null
   }
@@ -9716,6 +10098,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
+    assignedToId?: string | null
     activityId?: string | null
   }
 
@@ -9759,6 +10142,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutTicketsNestedInput
+    assignedTo?: UserUpdateOneWithoutAssignedTicketsNestedInput
     activity?: ActivityUpdateOneWithoutTicketsNestedInput
     messages?: MessageUpdateManyWithoutTicketNestedInput
   }
@@ -9774,6 +10158,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
+    assignedToId?: NullableStringFieldUpdateOperationsInput | string | null
     activityId?: NullableStringFieldUpdateOperationsInput | string | null
     messages?: MessageUncheckedUpdateManyWithoutTicketNestedInput
   }
@@ -9789,6 +10174,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
+    assignedToId?: NullableStringFieldUpdateOperationsInput | string | null
     activityId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
@@ -9803,6 +10189,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
+    assignedToId?: string | null
     categoryId?: string | null
   }
 
@@ -9817,6 +10204,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutTicketsNestedInput
+    assignedTo?: UserUpdateOneWithoutAssignedTicketsNestedInput
     category?: CategoryUpdateOneWithoutTicketsNestedInput
     messages?: MessageUpdateManyWithoutTicketNestedInput
   }
@@ -9832,6 +10220,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
+    assignedToId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     messages?: MessageUncheckedUpdateManyWithoutTicketNestedInput
   }
@@ -9847,6 +10236,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
+    assignedToId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 

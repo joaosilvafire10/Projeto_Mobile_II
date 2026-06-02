@@ -47,12 +47,12 @@ const router = Router();
  *                 minLength: 6
  *               role:
  *                 type: string
- *                 enum: [ADMIN, TECNICO, USUARIO]
+ *                 enum: [ADMIN, ANALISTA, USUARIO]
  *                 default: USUARIO
  *               department:
  *                 type: string
- *                 enum: [TI, SUPORTE, INFRAESTRUTURA, DESENVOLVIMENTO, SEGURANCA, REDES, BANCO_DE_DADOS, GERAL]
- *                 default: GERAL
+ *                 enum: [TI, FINANCEIRO, CONTABILIDADE]
+ *                 default: TI
  *     responses:
  *       201:
  *         description: Usuário registrado com sucesso
