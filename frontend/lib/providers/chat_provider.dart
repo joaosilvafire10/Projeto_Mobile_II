@@ -99,12 +99,17 @@ class ChatProvider extends ChangeNotifier {
                     : 'MEDIA';
 
     try {
+      // Garante que o departamento é um dos 3 valores válidos do banco
+      const validDepartments = ['TI', 'FINANCEIRO', 'CONTABILIDADE'];
+      final rawDept = _aiService.identifiedDepartment ?? 'TI';
+      final department = validDepartments.contains(rawDept) ? rawDept : 'TI';
+
       // POST à API REST — cria o chamado no servidor
       final ticket = await _ticketService.create(
         title: title,
         description: firstUserMessage.content,
         priority: priorityApi,
-        department: _aiService.identifiedDepartment,
+        department: department,
         aiSummary: aiSummary,
       );
 
