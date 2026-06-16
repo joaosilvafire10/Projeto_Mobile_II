@@ -73,7 +73,11 @@ class AIService {
 
         // Registra metadados identificados pela IA
         if (data['category'] != null) _identifiedCategory = data['category'] as String;
-        if (data['department'] != null) _identifiedDepartment = data['department'] as String;
+        if (data['department'] != null) {
+          final dept = (data['department'] as String).toUpperCase();
+          const valid = ['TI', 'FINANCEIRO', 'CONTABILIDADE'];
+          _identifiedDepartment = valid.contains(dept) ? dept : 'TI';
+        }
         if (data['priority'] != null) {
           final p = (data['priority'] as String? ?? '').toUpperCase();
           _identifiedPriority = p == 'ALTA' || p == 'HIGH'

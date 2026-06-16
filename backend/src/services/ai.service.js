@@ -2,6 +2,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const config = require("../config/env");
 const ticketRepository = require("../repositories/ticket.repository");
 const messageRepository = require("../repositories/message.repository");
+const prisma = require("../config/database");
 
 class AIService {
   constructor() {
@@ -20,7 +21,7 @@ class AIService {
 
     try {
       const genAI = new GoogleGenerativeAI(config.gemini.apiKey);
-      this.model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      this.model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
     } catch (error) {
       console.error("❌ Erro ao inicializar Gemini:", error.message);
     }
@@ -67,14 +68,10 @@ Seu papel é:
 5. IDENTIFICAR o departamento responsável com base no problema descrito.
 6. Quando o problema não puder ser resolvido por você, GERAR um chamado estruturado.
 
-Departamentos disponíveis:
-- TI: Problemas gerais de tecnologia, hardware, software
-- SUPORTE: Atendimento ao usuário, dúvidas operacionais
-- INFRAESTRUTURA: Servidores, data centers, equipamentos de rede física
-- DESENVOLVIMENTO: Bugs em sistemas, novas funcionalidades, integrações
-- SEGURANCA: Incidentes de segurança, acessos, permissões, vírus
-- REDES: Problemas de conectividade, VPN, firewall, DNS
-- BANCO_DE_DADOS: Performance de banco, backups, consultas lentas
+Departamentos disponíveis (use EXATAMENTE um destes valores):
+- TI: Problemas de tecnologia, hardware, software, redes, servidores, segurança digital, VPN, conectividade, banco de dados, desenvolvimento de sistemas, bugs, infraestrutura de TI
+- FINANCEIRO: Assuntos financeiros, pagamentos, reembolsos, fluxo de caixa, orçamentos, contas a pagar e receber
+- CONTABILIDADE: Assuntos contábeis, notas fiscais, relatórios contábeis, declarações de impostos, conciliação bancária, lançamentos contábeis
 
 Prioridades:
 - BAIXA: Questões cosméticas, melhorias, sem impacto operacional
@@ -90,7 +87,9 @@ REGRAS IMPORTANTES:
 
 {"criar_chamado": true, "titulo": "Título descritivo do problema", "descricao": "Descrição técnica detalhada", "prioridade": "MEDIA", "departamento": "TI", "resumo_ia": "Resumo técnico da triagem realizada pela IA, incluindo informações coletadas e tentativas de resolução."}
 
-IMPORTANTE: Só responda no formato JSON quando tiver informações suficientes para criar um chamado bem estruturado. Antes disso, faça perguntas e tente resolver.`;
+IMPORTANTE:
+- O campo "departamento" DEVE ser exatamente um dos valores: TI, FINANCEIRO ou CONTABILIDADE.
+- Só responda no formato JSON quando tiver informações suficientes para criar um chamado bem estruturado. Antes disso, faça perguntas e tente resolver.`;
   }
 
   /**
@@ -101,7 +100,12 @@ IMPORTANTE: Só responda no formato JSON quando tiver informações suficientes 
       let aiResponse;
 
       if (this.model) {
-        aiResponse = await this._processWithGemini(message, conversationHistory, categoryName, activityName);
+        try {
+          aiResponse = await this._processWithGemini(message, conversationHistory, categoryName, activityName);
+        } catch (geminiError) {
+          console.warn("⚠️ Falha ao comunicar com a API do Gemini. Usando modo simulado como fallback. Detalhes:", geminiError.message);
+          aiResponse = this._processSimulated(message, conversationHistory);
+        }
       } else {
         aiResponse = this._processSimulated(message, conversationHistory);
       }
@@ -317,24 +321,15 @@ IMPORTANTE: Só responda no formato JSON quando tiver informações suficientes 
   _detectDepartment(message, history) {
     const allText = [message, ...history.map((m) => m.content)].join(" ").toLowerCase();
 
-    if (allText.includes("segurança") || allText.includes("vírus") || allText.includes("permissão") || allText.includes("acesso negado")) {
-      return "SEGURANCA";
+    // Financeiro
+    if (allText.includes("pagamento") || allText.includes("reembolso") || allText.includes("fatura") || allText.includes("orçamento") || allText.includes("fluxo de caixa") || allText.includes("financeiro")) {
+      return "FINANCEIRO";
     }
-    if (allText.includes("rede") || allText.includes("vpn") || allText.includes("firewall") || allText.includes("dns")) {
-      return "REDES";
+    // Contabilidade
+    if (allText.includes("nota fiscal") || allText.includes("imposto") || allText.includes("contábil") || allText.includes("balanço") || allText.includes("conciliação") || allText.includes("contabilidade")) {
+      return "CONTABILIDADE";
     }
-    if (allText.includes("banco") || allText.includes("sql") || allText.includes("backup") || allText.includes("dados")) {
-      return "BANCO_DE_DADOS";
-    }
-    if (allText.includes("servidor") || allText.includes("data center") || allText.includes("hardware")) {
-      return "INFRAESTRUTURA";
-    }
-    if (allText.includes("bug") || allText.includes("código") || allText.includes("deploy") || allText.includes("api")) {
-      return "DESENVOLVIMENTO";
-    }
-    if (allText.includes("senha") || allText.includes("dúvida") || allText.includes("ajuda") || allText.includes("como fazer")) {
-      return "SUPORTE";
-    }
+    // TI (default — engloba rede, segurança, infra, dev, suporte, etc.)
     return "TI";
   }
 
@@ -369,7 +364,7 @@ IMPORTANTE: Só responda no formato JSON quando tiver informações suficientes 
       if (!data.criar_chamado) return null;
 
       // Validar campos obrigatórios
-      const validDepartments = ["TI", "SUPORTE", "INFRAESTRUTURA", "DESENVOLVIMENTO", "SEGURANCA", "REDES", "BANCO_DE_DADOS", "GERAL"];
+      const validDepartments = ["TI", "FINANCEIRO", "CONTABILIDADE"];
       const validPriorities = ["BAIXA", "MEDIA", "ALTA", "CRITICA"];
 
       return {

@@ -183,8 +183,7 @@ class TicketProvider extends ChangeNotifier {
   /// Envia uma mensagem para o ticket via API e atualiza localmente
   Future<void> sendMessage(String ticketId, String content) async {
     try {
-      await _api.dio.post('/messages', data: {
-        'ticketId': ticketId,
+      await _api.dio.post('/tickets/$ticketId/messages', data: {
         'content': content,
         'sender': 'user',
       });
