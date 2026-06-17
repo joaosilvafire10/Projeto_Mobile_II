@@ -158,5 +158,6 @@ router.post("/login", validate(loginSchema), authController.login);
  */
 router.get("/me", authMiddleware, authController.me);
 router.post("/refresh", authController.refresh);
+router.post("/logout", authMiddleware, authController.logout);
 
 module.exports = router;

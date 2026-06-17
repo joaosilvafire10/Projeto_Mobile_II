@@ -114,6 +114,15 @@ class AuthService {
   }
 
   /**
+   * Invalida o refresh token de um usuário.
+   */
+  async logout(userId) {
+    await userRepository.update(userId, {
+      refreshToken: null,
+    });
+  }
+
+  /**
    * Gera tokens de acesso e refresh.
    */
   _generateTokens(user) {

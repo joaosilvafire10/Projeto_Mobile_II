@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../providers/ticket_provider.dart';
-import '../providers/chat_provider.dart';
 import '../theme/app_theme.dart';
 import 'chat_screen.dart';
 import 'tickets_screen.dart';

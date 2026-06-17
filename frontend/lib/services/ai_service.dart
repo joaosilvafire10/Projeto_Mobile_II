@@ -25,6 +25,12 @@ class AIService {
   // Escopo selecionado pelo usuário
   String? selectedCategoryName;
   String? selectedActivityName;
+  String? selectedCategoryId;
+  String? selectedActivityId;
+
+  // Flag: o backend já criou o ticket automaticamente via IA
+  bool _ticketAutoCreated = false;
+  bool get ticketAutoCreated => _ticketAutoCreated;
 
   bool get isResolved => _resolved;
   String? get identifiedDepartment => _identifiedDepartment;
@@ -41,11 +47,17 @@ class AIService {
     _aiSummary = null;
     selectedCategoryName = null;
     selectedActivityName = null;
+    selectedCategoryId = null;
+    selectedActivityId = null;
+    _ticketAutoCreated = false;
   }
 
-  void setScope(String? categoryName, String? activityName) {
+  void setScope(String? categoryName, String? activityName,
+      {String? categoryId, String? activityId}) {
     selectedCategoryName = categoryName;
     selectedActivityName = activityName;
+    selectedCategoryId = categoryId;
+    selectedActivityId = activityId;
     _identifiedCategory = categoryName;
   }
 
@@ -63,6 +75,8 @@ class AIService {
           'conversationHistory': _conversationHistory,
           if (selectedCategoryName != null) 'categoryName': selectedCategoryName,
           if (selectedActivityName != null) 'activityName': selectedActivityName,
+          if (selectedCategoryId != null) 'categoryId': selectedCategoryId,
+          if (selectedActivityId != null) 'activityId': selectedActivityId,
         },
       );
 
@@ -95,6 +109,7 @@ class AIService {
         // Se a IA criou um ticket automaticamente
         if (responseType == 'ticket_created') {
           _resolved = true;
+          _ticketAutoCreated = true; // backend já criou — não criar de novo
           if (data['ticket'] != null) {
             _aiSummary = (data['ticket'] as Map<String, dynamic>)['aiSummary'] as String?;
           }

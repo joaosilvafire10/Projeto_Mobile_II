@@ -72,6 +72,21 @@ class AuthController {
       next(error);
     }
   }
+
+  /**
+   * POST /api/auth/logout
+   */
+  async logout(req, res, next) {
+    try {
+      await authService.logout(req.userId);
+      return res.status(200).json({
+        success: true,
+        message: "Logout realizado com sucesso (token invalidado).",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new AuthController();

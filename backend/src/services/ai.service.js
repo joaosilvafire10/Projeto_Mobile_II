@@ -21,7 +21,7 @@ class AIService {
 
     try {
       const genAI = new GoogleGenerativeAI(config.gemini.apiKey);
-      this.model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+      this.model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     } catch (error) {
       console.error("❌ Erro ao inicializar Gemini:", error.message);
     }
@@ -95,7 +95,7 @@ IMPORTANTE:
   /**
    * Processa mensagem do usuário via Gemini ou modo simulado.
    */
-  async processMessage({ message, conversationHistory, userId, ticketId, categoryName, activityName }) {
+  async processMessage({ message, conversationHistory, userId, ticketId, categoryName, activityName, categoryId, activityId }) {
     try {
       let aiResponse;
 
@@ -114,6 +114,33 @@ IMPORTANTE:
       const ticketData = this._parseTicketCreation(aiResponse);
 
       if (ticketData) {
+        // Obter categoryId e activityId baseando-se no que foi fornecido ou no mapeamento por nome
+        let finalCategoryId = categoryId || null;
+        let finalActivityId = activityId || null;
+
+        if (!finalCategoryId && (categoryName || ticketData.categoria)) {
+          const searchCatName = categoryName || ticketData.categoria;
+          const categoryDb = await prisma.category.findFirst({
+            where: { name: { equals: searchCatName, mode: "insensitive" } }
+          });
+          if (categoryDb) {
+            finalCategoryId = categoryDb.id;
+          }
+        }
+
+        if (!finalActivityId && (activityName || ticketData.atividade) && finalCategoryId) {
+          const searchActName = activityName || ticketData.atividade;
+          const activityDb = await prisma.activity.findFirst({
+            where: {
+              name: { equals: searchActName, mode: "insensitive" },
+              categoryId: finalCategoryId,
+            }
+          });
+          if (activityDb) {
+            finalActivityId = activityDb.id;
+          }
+        }
+
         // Criar o chamado automaticamente
         const ticket = await ticketRepository.create({
           title: ticketData.titulo,
@@ -122,6 +149,8 @@ IMPORTANTE:
           department: ticketData.departamento,
           aiSummary: ticketData.resumo_ia,
           userId,
+          categoryId: finalCategoryId,
+          activityId: finalActivityId,
         });
 
         // Salvar histórico de mensagens no chamado
@@ -373,6 +402,8 @@ IMPORTANTE:
         prioridade: validPriorities.includes(data.prioridade) ? data.prioridade : "MEDIA",
         departamento: validDepartments.includes(data.departamento) ? data.departamento : "GERAL",
         resumo_ia: data.resumo_ia || "Triagem realizada pelo assistente virtual.",
+        categoria: data.categoria || data.category || null,
+        atividade: data.atividade || data.activity || null,
       };
     } catch {
       return null;

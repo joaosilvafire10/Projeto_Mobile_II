@@ -65,7 +65,7 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
     } catch (e) {
-      print('Erro no login: $e');
+      debugPrint('Erro no login: $e');
       if (e is DioException && e.response != null) {
         _errorMessage = e.response?.data['message'] ?? 'Erro ao realizar login';
       } else {
@@ -104,7 +104,7 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
     } catch (e) {
-      print('Erro no registro: $e');
+      debugPrint('Erro no registro: $e');
       if (e is DioException && e.response != null) {
         _errorMessage = e.response?.data['message'] ?? 'Erro ao registrar usuário';
       } else {
@@ -119,6 +119,11 @@ class AuthProvider extends ChangeNotifier {
 
   /// Encerra a sessão: remove tokens do armazenamento seguro e retorna à tela de login.
   Future<void> logout() async {
+    try {
+      await _apiService.dio.post('/auth/logout');
+    } catch (e) {
+      debugPrint('Erro ao invalidar token no logout: $e');
+    }
     _currentUser = null;
     _errorMessage = null;
     // Remove tokens do FlutterSecureStorage

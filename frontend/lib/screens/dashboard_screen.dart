@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../providers/auth_provider.dart';
 import '../providers/ticket_provider.dart';
 import '../models/ticket_model.dart';
@@ -32,7 +33,6 @@ class DashboardScreen extends StatelessWidget {
             },
           ),
         ),
-
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -69,6 +69,19 @@ class DashboardScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 28),
+            if (tp.totalTickets > 0) ...[
+              FadeInUp(
+                delay: const Duration(milliseconds: 400),
+                child: _buildStatusChart(tp),
+              ),
+              const SizedBox(height: 20),
+              FadeInUp(
+                delay: const Duration(milliseconds: 500),
+                child: _buildPriorityChart(tp),
+              ),
+              const SizedBox(height: 28),
+            ],
+
             FadeInUp(
               delay: const Duration(milliseconds: 700),
               child: Text('Chamados Recentes', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
@@ -101,6 +114,272 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildStatusChart(TicketProvider tp) {
+    final open = tp.openTickets;
+    final inProgress = tp.inProgressTickets;
+    final resolved = tp.resolvedTickets;
+    final closed = tp.tickets.where((t) => t.status == TicketStatus.closed).length;
+    final total = open + inProgress + resolved + closed;
+
+    if (total == 0) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: AppTheme.glassCard,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Status dos Chamados',
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 160,
+            child: Row(
+              children: [
+                Expanded(
+                  child: PieChart(
+                    PieChartData(
+                      sectionsSpace: 4,
+                      centerSpaceRadius: 35,
+                      sections: [
+                        if (open > 0)
+                          PieChartSectionData(
+                            color: AppTheme.accentOrange,
+                            value: open.toDouble(),
+                            title: '$open',
+                            radius: 18,
+                            titleStyle: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        if (inProgress > 0)
+                          PieChartSectionData(
+                            color: AppTheme.accentBlue,
+                            value: inProgress.toDouble(),
+                            title: '$inProgress',
+                            radius: 18,
+                            titleStyle: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        if (resolved > 0)
+                          PieChartSectionData(
+                            color: AppTheme.success,
+                            value: resolved.toDouble(),
+                            title: '$resolved',
+                            radius: 18,
+                            titleStyle: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        if (closed > 0)
+                          PieChartSectionData(
+                            color: AppTheme.textMuted,
+                            value: closed.toDouble(),
+                            title: '$closed',
+                            radius: 18,
+                            titleStyle: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _legendItem('Aberto', AppTheme.accentOrange),
+                    const SizedBox(height: 6),
+                    _legendItem('Em Andamento', AppTheme.accentBlue),
+                    const SizedBox(height: 6),
+                    _legendItem('Resolvido', AppTheme.success),
+                    const SizedBox(height: 6),
+                    _legendItem('Fechado', AppTheme.textMuted),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _legendItem(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            color: AppTheme.textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriorityChart(TicketProvider tp) {
+    final priorityMap = tp.ticketsByPriority;
+    final low = priorityMap[TicketPriority.low] ?? 0;
+    final medium = priorityMap[TicketPriority.medium] ?? 0;
+    final high = priorityMap[TicketPriority.high] ?? 0;
+    final critical = priorityMap[TicketPriority.critical] ?? 0;
+    final maxVal = [low, medium, high, critical].reduce((curr, next) => curr > next ? curr : next);
+
+    if (tp.totalTickets == 0) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: AppTheme.glassCard,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Chamados por Prioridade',
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            height: 180,
+            child: BarChart(
+              BarChartData(
+                maxY: maxVal == 0 ? 5 : (maxVal + 1).toDouble(),
+                barGroups: [
+                  BarChartGroupData(
+                    x: 0,
+                    barRods: [
+                      BarChartRodData(
+                        toY: low.toDouble(),
+                        color: AppTheme.textMuted,
+                        width: 16,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                      ),
+                    ],
+                  ),
+                  BarChartGroupData(
+                    x: 1,
+                    barRods: [
+                      BarChartRodData(
+                        toY: medium.toDouble(),
+                        color: AppTheme.warning,
+                        width: 16,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                      ),
+                    ],
+                  ),
+                  BarChartGroupData(
+                    x: 2,
+                    barRods: [
+                      BarChartRodData(
+                        toY: high.toDouble(),
+                        color: AppTheme.accentOrange,
+                        width: 16,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                      ),
+                    ],
+                  ),
+                  BarChartGroupData(
+                    x: 3,
+                    barRods: [
+                      BarChartRodData(
+                        toY: critical.toDouble(),
+                        color: AppTheme.error,
+                        width: 16,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                      ),
+                    ],
+                  ),
+                ],
+                gridData: const FlGridData(show: false),
+                borderData: FlBorderData(show: false),
+                titlesData: FlTitlesData(
+                  leftTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        final style = GoogleFonts.inter(
+                          color: AppTheme.textSecondary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        );
+                        switch (value.toInt()) {
+                          case 0:
+                            return SideTitleWidget(
+                              meta: meta,
+                              child: Text('Baixa', style: style),
+                            );
+                          case 1:
+                            return SideTitleWidget(
+                              meta: meta,
+                              child: Text('Média', style: style),
+                            );
+                          case 2:
+                            return SideTitleWidget(
+                              meta: meta,
+                              child: Text('Alta', style: style),
+                            );
+                          case 3:
+                            return SideTitleWidget(
+                              meta: meta,
+                              child: Text('Crítica', style: style),
+                            );
+                          default:
+                            return const SizedBox.shrink();
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _statCard(String label, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(18),
@@ -124,22 +403,6 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _quickAction(IconData icon, String title, String subtitle, Gradient gradient) {
-    return Container(
-      padding: const EdgeInsets.all(18), decoration: AppTheme.glassCard,
-      child: Row(children: [
-        Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(gradient: gradient, borderRadius: BorderRadius.circular(14)),
-            child: Icon(icon, color: Colors.white, size: 24)),
-        const SizedBox(width: 16),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-          const SizedBox(height: 4),
-          Text(subtitle, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted)),
-        ])),
-        const Icon(Icons.arrow_forward_ios_rounded, color: AppTheme.textMuted, size: 16),
-      ]),
-    );
-  }
 
   Widget _ticketCard(BuildContext context, TicketModel t) {
     final (Color c, String s, IconData i) = switch (t.status) {
