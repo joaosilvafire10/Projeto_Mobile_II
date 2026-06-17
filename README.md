@@ -1,8 +1,6 @@
 O backend foi completamente estruturado com a Arquitetura Limpa e as tecnologias solicitadas! Criei um artefato com o guia completo detalhado acima, mas aqui está um resumo rápido de como você pode rodar e testar o projeto agora mesmo:
 
-1. Certifique-se de ter um banco PostgreSQL rodando
-O projeto está configurado para conectar em postgresql://postgres:postgres@localhost:5432/chamados_inteligentes. (Se a senha do seu Postgres local for diferente, basta alterar a variável DATABASE_URL no arquivo backend/.env).
-
+1. O projeto está configurado para conectar em SQLLite.
 2. Configure o banco e instale dependências
 Abra o terminal na pasta backend e rode os comandos:
 
