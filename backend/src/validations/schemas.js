@@ -83,6 +83,9 @@ const createTicketSchema = z.object({
     )
     .optional()
     .default("TI"),
+  categoryId: z.string().uuid("ID da categoria inválido.").optional().nullable(),
+  activityId: z.string().uuid("ID da atividade inválido.").optional().nullable(),
+  aiSummary: z.string().max(10000).optional().nullable(),
 });
 
 const updateTicketSchema = z.object({

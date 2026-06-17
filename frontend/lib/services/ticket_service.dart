@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-import 'package:dio/dio.dart';
 import '../models/ticket_model.dart';
 import 'api_service.dart';
 

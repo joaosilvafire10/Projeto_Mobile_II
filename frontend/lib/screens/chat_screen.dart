@@ -157,6 +157,34 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+            FadeInDown(
+              duration: const Duration(milliseconds: 500),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentOrange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.accentOrange.withValues(alpha: 0.25)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.privacy_tip_outlined, color: AppTheme.accentOrange, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Suas mensagens serão processadas pelo Google Gemini para triagem. Não inclua senhas ou dados confidenciais.',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppTheme.accentOrange,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 30),
 
             // Step 1: Select Category
@@ -293,6 +321,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         _chatProvider.startConversation(
                           categoryName: _selectedCategory!.name,
                           activityName: _selectedActivity!.name,
+                          categoryId: _selectedCategory!.id,
+                          activityId: _selectedActivity!.id,
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -391,22 +421,19 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           // Action buttons
           Consumer<ChatProvider>(builder: (_, chatVal, __) {
-            if (chatVal.isResolved && !chatVal.ticketCreated) {
+            if (chatVal.isAiTyping) {
+              return const SizedBox.shrink();
+            }
+            if (chatVal.ticketCreated || chatVal.isResolved) {
+              return _buildActionBar([
+                _actionBtn('Nova Conversa 🔄', AppTheme.accentCyan, _newConversation),
+              ]);
+            }
+            if (chatVal.messages.length > 3) {
               return _buildActionBar([
                 _actionBtn('Resolvido ✅', AppTheme.success, _markResolved),
                 _actionBtn('Abrir Chamado 📋', AppTheme.accentOrange, _createTicket),
               ]);
-            }
-            if (chatVal.ticketCreated ||
-                (chatVal.messages.length > 3 && !chatVal.isResolved)) {
-              final btns = <Widget>[];
-              if (!chatVal.ticketCreated) {
-                btns.add(_actionBtn('Abrir Chamado 📋', AppTheme.accentBlue, _createTicket));
-              }
-              if (chatVal.ticketCreated) {
-                btns.add(_actionBtn('Nova Conversa 🔄', AppTheme.accentCyan, _newConversation));
-              }
-              if (btns.isNotEmpty) return _buildActionBar(btns);
             }
             return const SizedBox.shrink();
           }),

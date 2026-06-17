@@ -63,18 +63,21 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   void _showEditStatusSheet(TicketModel ticket) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: AppTheme.surfaceCard,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => _EditStatusSheet(
         ticket: ticket,
-        onSave: (status, priority) async {
+        onSave: (status, priority, title, description) async {
           Navigator.pop(context);
           final ok = await context.read<TicketProvider>().editTicket(
             widget.ticketId,
             status: status,
             priority: priority,
+            title: title,
+            description: description,
           );
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -596,7 +599,12 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 /// Bottom sheet para editar status e prioridade do chamado
 class _EditStatusSheet extends StatefulWidget {
   final TicketModel ticket;
-  final void Function(TicketStatus status, TicketPriority priority) onSave;
+  final void Function(
+    TicketStatus status,
+    TicketPriority priority,
+    String title,
+    String description,
+  ) onSave;
 
   const _EditStatusSheet({required this.ticket, required this.onSave});
 
@@ -605,117 +613,287 @@ class _EditStatusSheet extends StatefulWidget {
 }
 
 class _EditStatusSheetState extends State<_EditStatusSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
   late TicketStatus _status;
   late TicketPriority _priority;
 
   @override
   void initState() {
     super.initState();
+    _titleController = TextEditingController(text: widget.ticket.title);
+    _descriptionController = TextEditingController(text: widget.ticket.description);
     _status = widget.ticket.status;
     _priority = widget.ticket.priority;
   }
 
   @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(width: 40, height: 4, decoration: BoxDecoration(
-            color: AppTheme.textMuted, borderRadius: BorderRadius.circular(2))),
-        const SizedBox(height: 20),
-        Text('Editar Chamado', style: GoogleFonts.inter(
-            fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-        const SizedBox(height: 24),
+    return Container(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppTheme.textMuted,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: Text(
+                    'Editar Chamado',
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
 
-        // Status
-        Text('Status', style: GoogleFonts.inter(
-            fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
-        const SizedBox(height: 10),
-        Wrap(spacing: 8, runSpacing: 8, children: TicketStatus.values.map((s) {
-          final selected = _status == s;
-          final label = switch (s) {
-            TicketStatus.open => 'Aberto',
-            TicketStatus.inProgress => 'Em Andamento',
-            TicketStatus.resolved => 'Resolvido',
-            TicketStatus.closed => 'Fechado',
-          };
-          final color = switch (s) {
-            TicketStatus.open => AppTheme.accentOrange,
-            TicketStatus.inProgress => AppTheme.accentBlue,
-            TicketStatus.resolved => AppTheme.success,
-            TicketStatus.closed => AppTheme.textMuted,
-          };
-          return GestureDetector(
-            onTap: () => setState(() => _status = s),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: selected ? color.withValues(alpha: 0.2) : AppTheme.surfaceElevated,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: selected ? color : Colors.white.withValues(alpha: 0.08), width: selected ? 2 : 1),
-              ),
-              child: Text(label, style: GoogleFonts.inter(
-                  fontSize: 13, fontWeight: FontWeight.w600, color: selected ? color : AppTheme.textSecondary)),
-            ),
-          );
-        }).toList()),
-        const SizedBox(height: 20),
+                // Title Input
+                Text(
+                  'Título',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _titleController,
+                  style: const TextStyle(color: Colors.white),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'O título é obrigatório.';
+                    }
+                    if (value.trim().length < 5) {
+                      return 'O título deve ter no mínimo 5 caracteres.';
+                    }
+                    if (value.trim().length > 120) {
+                      return 'O título deve ter no máximo 120 caracteres.';
+                    }
+                    return null;
+                  },
+                  decoration: const InputDecoration(
+                    hintText: 'Título do chamado',
+                  ),
+                ),
+                const SizedBox(height: 20),
 
-        // Priority
-        Text('Prioridade', style: GoogleFonts.inter(
-            fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
-        const SizedBox(height: 10),
-        Wrap(spacing: 8, runSpacing: 8, children: TicketPriority.values.map((p) {
-          final selected = _priority == p;
-          final label = switch (p) {
-            TicketPriority.low => 'Baixa',
-            TicketPriority.medium => 'Média',
-            TicketPriority.high => 'Alta',
-            TicketPriority.critical => 'Crítica',
-          };
-          final color = switch (p) {
-            TicketPriority.low => AppTheme.textMuted,
-            TicketPriority.medium => AppTheme.warning,
-            TicketPriority.high => AppTheme.accentOrange,
-            TicketPriority.critical => AppTheme.error,
-          };
-          return GestureDetector(
-            onTap: () => setState(() => _priority = p),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: selected ? color.withValues(alpha: 0.2) : AppTheme.surfaceElevated,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: selected ? color : Colors.white.withValues(alpha: 0.08), width: selected ? 2 : 1),
-              ),
-              child: Text(label, style: GoogleFonts.inter(
-                  fontSize: 13, fontWeight: FontWeight.w600, color: selected ? color : AppTheme.textSecondary)),
-            ),
-          );
-        }).toList()),
-        const SizedBox(height: 28),
+                // Description Input
+                Text(
+                  'Descrição',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _descriptionController,
+                  style: const TextStyle(color: Colors.white),
+                  maxLines: 4,
+                  minLines: 2,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'A descrição é obrigatória.';
+                    }
+                    if (value.trim().length < 10) {
+                      return 'A descrição deve ter no mínimo 10 caracteres.';
+                    }
+                    return null;
+                  },
+                  decoration: const InputDecoration(
+                    hintText: 'Descrição detalhada do problema',
+                  ),
+                ),
+                const SizedBox(height: 20),
 
-        // Save
-        SizedBox(
-          width: double.infinity,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: ElevatedButton(
-              onPressed: () => widget.onSave(_status, _priority),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: Text('Salvar Alterações', style: GoogleFonts.inter(
-                  fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                // Status
+                Text(
+                  'Status',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: TicketStatus.values.map((s) {
+                    final selected = _status == s;
+                    final label = switch (s) {
+                      TicketStatus.open => 'Aberto',
+                      TicketStatus.inProgress => 'Em Andamento',
+                      TicketStatus.resolved => 'Resolvido',
+                      TicketStatus.closed => 'Fechado',
+                    };
+                    final color = switch (s) {
+                      TicketStatus.open => AppTheme.accentOrange,
+                      TicketStatus.inProgress => AppTheme.accentBlue,
+                      TicketStatus.resolved => AppTheme.success,
+                      TicketStatus.closed => AppTheme.textMuted,
+                    };
+                    return GestureDetector(
+                      onTap: () => setState(() => _status = s),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? color.withValues(alpha: 0.2)
+                              : AppTheme.surfaceElevated,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: selected
+                                ? color
+                                : Colors.white.withValues(alpha: 0.08),
+                            width: selected ? 2 : 1,
+                          ),
+                        ),
+                        child: Text(
+                          label,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: selected ? color : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+
+                // Priority
+                Text(
+                  'Prioridade',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: TicketPriority.values.map((p) {
+                    final selected = _priority == p;
+                    final label = switch (p) {
+                      TicketPriority.low => 'Baixa',
+                      TicketPriority.medium => 'Média',
+                      TicketPriority.high => 'Alta',
+                      TicketPriority.critical => 'Crítica',
+                    };
+                    final color = switch (p) {
+                      TicketPriority.low => AppTheme.textMuted,
+                      TicketPriority.medium => AppTheme.warning,
+                      TicketPriority.high => AppTheme.accentOrange,
+                      TicketPriority.critical => AppTheme.error,
+                    };
+                    return GestureDetector(
+                      onTap: () => setState(() => _priority = p),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? color.withValues(alpha: 0.2)
+                              : AppTheme.surfaceElevated,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: selected
+                                ? color
+                                : Colors.white.withValues(alpha: 0.08),
+                            width: selected ? 2 : 1,
+                          ),
+                        ),
+                        child: Text(
+                          label,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: selected ? color : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 28),
+
+                // Save
+                SizedBox(
+                  width: double.infinity,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          widget.onSave(
+                            _status,
+                            _priority,
+                            _titleController.text.trim(),
+                            _descriptionController.text.trim(),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: Text(
+                        'Salvar Alterações',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-      ]),
+      ),
     );
   }
 }

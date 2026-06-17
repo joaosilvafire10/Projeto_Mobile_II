@@ -24,6 +24,12 @@ class TicketRepository {
             department: true,
           },
         },
+        category: {
+          select: { id: true, name: true },
+        },
+        activity: {
+          select: { id: true, name: true },
+        },
         messages: true,
       },
     });
@@ -51,6 +57,12 @@ class TicketRepository {
             email: true,
             department: true,
           },
+        },
+        category: {
+          select: { id: true, name: true },
+        },
+        activity: {
+          select: { id: true, name: true },
         },
         messages: {
           orderBy: { createdAt: "asc" },
@@ -108,6 +120,12 @@ class TicketRepository {
               email: true,
               department: true,
             },
+          },
+          category: {
+            select: { id: true, name: true },
+          },
+          activity: {
+            select: { id: true, name: true },
           },
           _count: {
             select: { messages: true },

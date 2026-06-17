@@ -29,7 +29,8 @@ class ChatProvider extends ChangeNotifier {
   String? get selectedCategoryName => _selectedCategoryName;
   String? get selectedActivityName => _selectedActivityName;
 
-  void startConversation({String? categoryName, String? activityName}) {
+  void startConversation({String? categoryName, String? activityName,
+      String? categoryId, String? activityId}) {
     _messages.clear();
     _aiService.reset();
     _isResolved = false;
@@ -37,7 +38,8 @@ class ChatProvider extends ChangeNotifier {
     _lastCreatedTicket = null;
     _selectedCategoryName = categoryName;
     _selectedActivityName = activityName;
-    _aiService.setScope(categoryName, activityName);
+    _aiService.setScope(categoryName, activityName,
+        categoryId: categoryId, activityId: activityId);
     _messages.add(AIService.getWelcomeMessage(
       categoryName: categoryName,
       activityName: activityName,
@@ -64,6 +66,11 @@ class ChatProvider extends ChangeNotifier {
 
     if (_aiService.isResolved) {
       _isResolved = true;
+    }
+    // Se o backend criou o ticket automaticamente, marca como criado
+    // para evitar exibir o botão "Abrir Chamado" que criaria um segundo
+    if (_aiService.ticketAutoCreated) {
+      _ticketCreated = true;
     }
 
     notifyListeners();
@@ -104,12 +111,18 @@ class ChatProvider extends ChangeNotifier {
       final rawDept = _aiService.identifiedDepartment ?? 'TI';
       final department = validDepartments.contains(rawDept) ? rawDept : 'TI';
 
+      // Usa os IDs reais de categoria e atividade selecionados pelo usuário
+      final categoryId = _aiService.selectedCategoryId;
+      final activityId = _aiService.selectedActivityId;
+
       // POST à API REST — cria o chamado no servidor
       final ticket = await _ticketService.create(
         title: title,
         description: firstUserMessage.content,
         priority: priorityApi,
         department: department,
+        categoryId: categoryId,
+        activityId: activityId,
         aiSummary: aiSummary,
       );
 

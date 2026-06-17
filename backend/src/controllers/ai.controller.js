@@ -6,7 +6,7 @@ class AIController {
    */
   async triage(req, res, next) {
     try {
-      const { message, conversationHistory, ticketId, categoryName, activityName } = req.body;
+      const { message, conversationHistory, ticketId, categoryName, activityName, categoryId, activityId } = req.body;
 
       const result = await aiService.processMessage({
         message,
@@ -15,6 +15,8 @@ class AIController {
         ticketId,
         categoryName,
         activityName,
+        categoryId,
+        activityId,
       });
 
       return res.status(200).json({
