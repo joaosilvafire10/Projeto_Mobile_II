@@ -5,6 +5,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/auth_provider.dart';
 import '../providers/ticket_provider.dart';
+import '../providers/theme_provider.dart';
 import '../models/ticket_model.dart';
 import '../theme/app_theme.dart';
 import 'ticket_detail_screen.dart';
@@ -21,6 +22,15 @@ class DashboardScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
+        actions: [
+          Consumer<ThemeProvider>(
+            builder: (context, theme, _) => IconButton(
+              icon: Icon(theme.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
+              onPressed: () => theme.toggleTheme(),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu_rounded),
@@ -43,28 +53,28 @@ class DashboardScreen extends StatelessWidget {
               duration: const Duration(milliseconds: 600),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('Olá, ${user?.name.split(' ').first ?? 'Usuário'}! 👋',
-                    style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+                    style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
                 const SizedBox(height: 4),
                 Text('Veja o resumo dos seus atendimentos',
-                    style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textSecondary)),
+                    style: GoogleFonts.inter(fontSize: 14, color: context.colors.textSecondary)),
               ]),
             ),
             const SizedBox(height: 28),
             FadeInUp(
               delay: const Duration(milliseconds: 200),
               child: Row(children: [
-                Expanded(child: _statCard('Total', '${tp.totalTickets}', Icons.confirmation_number_rounded, AppTheme.accentBlue)),
+                Expanded(child: _statCard(context, 'Total', '${tp.totalTickets}', Icons.confirmation_number_rounded, AppTheme.accentBlue)),
                 const SizedBox(width: 12),
-                Expanded(child: _statCard('Abertos', '${tp.openTickets}', Icons.fiber_new_rounded, AppTheme.accentOrange)),
+                Expanded(child: _statCard(context, 'Abertos', '${tp.openTickets}', Icons.fiber_new_rounded, AppTheme.accentOrange)),
               ]),
             ),
             const SizedBox(height: 12),
             FadeInUp(
               delay: const Duration(milliseconds: 300),
               child: Row(children: [
-                Expanded(child: _statCard('Em Andamento', '${tp.inProgressTickets}', Icons.sync_rounded, AppTheme.accentPurple)),
+                Expanded(child: _statCard(context, 'Em Andamento', '${tp.inProgressTickets}', Icons.sync_rounded, AppTheme.accentPurple)),
                 const SizedBox(width: 12),
-                Expanded(child: _statCard('Resolvidos', '${tp.resolvedTickets}', Icons.check_circle_outline_rounded, AppTheme.success)),
+                Expanded(child: _statCard(context, 'Resolvidos', '${tp.resolvedTickets}', Icons.check_circle_outline_rounded, AppTheme.success)),
               ]),
             ),
 
@@ -72,26 +82,26 @@ class DashboardScreen extends StatelessWidget {
             if (tp.totalTickets > 0) ...[
               FadeInUp(
                 delay: const Duration(milliseconds: 400),
-                child: _buildStatusChart(tp),
+                child: _buildStatusChart(context, tp),
               ),
               const SizedBox(height: 20),
               FadeInUp(
                 delay: const Duration(milliseconds: 500),
-                child: _buildPriorityChart(tp),
+                child: _buildPriorityChart(context, tp),
               ),
               const SizedBox(height: 28),
             ],
 
             FadeInUp(
               delay: const Duration(milliseconds: 700),
-              child: Text('Chamados Recentes', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+              child: Text('Chamados Recentes', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
             ),
             const SizedBox(height: 12),
             if (tp.totalTickets == 0)
               FadeInUp(
                 delay: const Duration(milliseconds: 800),
                 child: Container(
-                  width: double.infinity, padding: const EdgeInsets.all(32), decoration: AppTheme.glassCard,
+                  width: double.infinity, padding: const EdgeInsets.all(32), decoration: context.glassCard,
                   child: Column(children: [
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -99,10 +109,10 @@ class DashboardScreen extends StatelessWidget {
                       child: const Icon(Icons.inbox_rounded, color: AppTheme.accentBlue, size: 40),
                     ),
                     const SizedBox(height: 16),
-                    Text('Nenhum chamado ainda', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                    Text('Nenhum chamado ainda', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: context.colors.textSecondary)),
                     const SizedBox(height: 8),
                     Text('Inicie um atendimento com a IA\npara criar seu primeiro chamado',
-                        textAlign: TextAlign.center, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textMuted, height: 1.5)),
+                        textAlign: TextAlign.center, style: GoogleFonts.inter(fontSize: 13, color: context.colors.textMuted, height: 1.5)),
                   ]),
                 ),
               )
@@ -114,7 +124,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusChart(TicketProvider tp) {
+  Widget _buildStatusChart(BuildContext context, TicketProvider tp) {
     final open = tp.openTickets;
     final inProgress = tp.inProgressTickets;
     final resolved = tp.resolvedTickets;
@@ -125,7 +135,7 @@ class DashboardScreen extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: AppTheme.glassCard,
+      decoration: context.glassCard,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -134,7 +144,7 @@ class DashboardScreen extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: 20),
@@ -186,7 +196,7 @@ class DashboardScreen extends StatelessWidget {
                           ),
                         if (closed > 0)
                           PieChartSectionData(
-                            color: AppTheme.textMuted,
+                            color: context.colors.textMuted,
                             value: closed.toDouble(),
                             title: '$closed',
                             radius: 18,
@@ -205,13 +215,13 @@ class DashboardScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _legendItem('Aberto', AppTheme.accentOrange),
+                    _legendItem(context, 'Aberto', AppTheme.accentOrange),
                     const SizedBox(height: 6),
-                    _legendItem('Em Andamento', AppTheme.accentBlue),
+                    _legendItem(context, 'Em Andamento', AppTheme.accentBlue),
                     const SizedBox(height: 6),
-                    _legendItem('Resolvido', AppTheme.success),
+                    _legendItem(context, 'Resolvido', AppTheme.success),
                     const SizedBox(height: 6),
-                    _legendItem('Fechado', AppTheme.textMuted),
+                    _legendItem(context, 'Fechado', context.colors.textMuted),
                   ],
                 ),
               ],
@@ -222,7 +232,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _legendItem(String label, Color color) {
+  Widget _legendItem(BuildContext context, String label, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -239,7 +249,7 @@ class DashboardScreen extends StatelessWidget {
           label,
           style: GoogleFonts.inter(
             fontSize: 11,
-            color: AppTheme.textSecondary,
+            color: context.colors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -247,7 +257,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPriorityChart(TicketProvider tp) {
+  Widget _buildPriorityChart(BuildContext context, TicketProvider tp) {
     final priorityMap = tp.ticketsByPriority;
     final low = priorityMap[TicketPriority.low] ?? 0;
     final medium = priorityMap[TicketPriority.medium] ?? 0;
@@ -259,7 +269,7 @@ class DashboardScreen extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: AppTheme.glassCard,
+      decoration: context.glassCard,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -268,7 +278,7 @@ class DashboardScreen extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: 24),
@@ -283,7 +293,7 @@ class DashboardScreen extends StatelessWidget {
                     barRods: [
                       BarChartRodData(
                         toY: low.toDouble(),
-                        color: AppTheme.textMuted,
+                        color: context.colors.textMuted,
                         width: 16,
                         borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                       ),
@@ -340,7 +350,7 @@ class DashboardScreen extends StatelessWidget {
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
                         final style = GoogleFonts.inter(
-                          color: AppTheme.textSecondary,
+                          color: context.colors.textSecondary,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                         );
@@ -380,11 +390,11 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _statCard(String label, String value, IconData icon, Color color) {
+  Widget _statCard(BuildContext context, String label, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceCard.withValues(alpha: 0.8),
+        color: context.colors.surfaceCard.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.15)),
         boxShadow: [BoxShadow(color: color.withValues(alpha: 0.08), blurRadius: 20, offset: const Offset(0, 4))],
@@ -396,9 +406,9 @@ class DashboardScreen extends StatelessWidget {
           child: Icon(icon, color: color, size: 20),
         ),
         const SizedBox(height: 14),
-        Text(value, style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+        Text(value, style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
         const SizedBox(height: 2),
-        Text(label, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textMuted, fontWeight: FontWeight.w500)),
+        Text(label, style: GoogleFonts.inter(fontSize: 13, color: context.colors.textMuted, fontWeight: FontWeight.w500)),
       ]),
     );
   }
@@ -409,15 +419,15 @@ class DashboardScreen extends StatelessWidget {
       TicketStatus.open => (AppTheme.accentOrange, 'Aberto', Icons.fiber_new_rounded),
       TicketStatus.inProgress => (AppTheme.accentBlue, 'Em Andamento', Icons.sync_rounded),
       TicketStatus.resolved => (AppTheme.success, 'Resolvido', Icons.check_circle_rounded),
-      TicketStatus.closed => (AppTheme.textMuted, 'Fechado', Icons.archive_rounded),
+      TicketStatus.closed => (context.colors.textMuted, 'Fechado', Icons.archive_rounded),
     };
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TicketDetailScreen(ticketId: t.id))),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(16), decoration: AppTheme.glassCard,
+        margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(16), decoration: context.glassCard,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Expanded(child: Text(t.title, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+            Expanded(child: Text(t.title, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: context.colors.textPrimary),
                 maxLines: 1, overflow: TextOverflow.ellipsis)),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -429,14 +439,14 @@ class DashboardScreen extends StatelessWidget {
             ),
           ]),
           const SizedBox(height: 8),
-          Text(t.description, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted), maxLines: 2, overflow: TextOverflow.ellipsis),
+          Text(t.description, style: GoogleFonts.inter(fontSize: 12, color: context.colors.textMuted), maxLines: 2, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 10),
           Row(children: [
-            const Icon(Icons.folder_outlined, size: 14, color: AppTheme.textMuted), const SizedBox(width: 4),
-            Text(t.category, style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted)),
+            Icon(Icons.folder_outlined, size: 14, color: context.colors.textMuted), const SizedBox(width: 4),
+            Text(t.category, style: GoogleFonts.inter(fontSize: 11, color: context.colors.textMuted)),
             const SizedBox(width: 12),
-            const Icon(Icons.business_outlined, size: 14, color: AppTheme.textMuted), const SizedBox(width: 4),
-            Expanded(child: Text(t.department, style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted), overflow: TextOverflow.ellipsis)),
+            Icon(Icons.business_outlined, size: 14, color: context.colors.textMuted), const SizedBox(width: 4),
+            Expanded(child: Text(t.department, style: GoogleFonts.inter(fontSize: 11, color: context.colors.textMuted), overflow: TextOverflow.ellipsis)),
           ]),
         ]),
       ),

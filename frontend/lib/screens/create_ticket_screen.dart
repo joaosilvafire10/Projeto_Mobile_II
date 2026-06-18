@@ -155,7 +155,7 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
                         'Preencha as informações abaixo para encaminhar sua solicitação diretamente para a equipe técnica de suporte.',
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: AppTheme.textSecondary,
+                          color: context.colors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 30),
@@ -334,15 +334,15 @@ class _CreateTicketScreenState extends State<CreateTicketScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceCard,
+        color: context.colors.surfaceCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
           isExpanded: true,
-          dropdownColor: AppTheme.surfaceCard,
-          hint: Text(hint, style: GoogleFonts.inter(color: AppTheme.textMuted)),
+          dropdownColor: context.colors.surfaceCard,
+          hint: Text(hint, style: GoogleFonts.inter(color: context.colors.textMuted)),
           value: value,
           icon: Icon(Icons.keyboard_arrow_down_rounded, color: accentColor),
           items: items.map((T item) {

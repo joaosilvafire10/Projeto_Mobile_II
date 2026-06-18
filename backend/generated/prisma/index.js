@@ -178,7 +178,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\joao.jesus\\Prog_Web\\Projeto_Mobile_II\\backend\\generated\\prisma",
+      "value": "C:\\Users\\Pichau\\OneDrive\\Documentos\\projeto_mobile\\Projeto_Mobile_II\\backend\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -192,7 +192,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\joao.jesus\\Prog_Web\\Projeto_Mobile_II\\backend\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\Pichau\\OneDrive\\Documentos\\projeto_mobile\\Projeto_Mobile_II\\backend\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

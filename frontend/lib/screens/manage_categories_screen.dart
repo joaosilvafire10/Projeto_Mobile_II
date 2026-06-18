@@ -42,12 +42,12 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceCard,
+        backgroundColor: context.colors.surfaceCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Nova Categoria',
           style: GoogleFonts.inter(
-              color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
+              color: context.colors.textPrimary, fontWeight: FontWeight.bold),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -81,7 +81,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
               Navigator.pop(ctx);
             },
             child: Text('Cancelar',
-                style: GoogleFonts.inter(color: AppTheme.textMuted)),
+                style: GoogleFonts.inter(color: context.colors.textMuted)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -124,12 +124,12 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceCard,
+        backgroundColor: context.colors.surfaceCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Nova Atividade em ${category.name}',
           style: GoogleFonts.inter(
-              color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
+              color: context.colors.textPrimary, fontWeight: FontWeight.bold),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -163,7 +163,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
               Navigator.pop(ctx);
             },
             child: Text('Cancelar',
-                style: GoogleFonts.inter(color: AppTheme.textMuted)),
+                style: GoogleFonts.inter(color: context.colors.textMuted)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -233,7 +233,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                   Text(
                     'Selecione uma categoria para gerenciar suas atividades:',
                     style: GoogleFonts.inter(
-                        color: AppTheme.textSecondary,
+                        color: context.colors.textSecondary,
                         fontSize: 13,
                         fontWeight: FontWeight.w500),
                   ),
@@ -296,7 +296,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? AppTheme.accentBlue
-                                    : AppTheme.surfaceCard,
+                                    : context.colors.surfaceCard,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: isSelected
@@ -337,7 +337,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                                           fontSize: 11,
                                           color: isSelected
                                               ? Colors.white.withValues(alpha: 0.8)
-                                              : AppTheme.textMuted,
+                                              : context.colors.textMuted,
                                         ),
                                       ),
                                     ],
@@ -351,7 +351,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                                           final confirm = await showDialog<bool>(
                                             context: context,
                                             builder: (c) => AlertDialog(
-                                              backgroundColor: AppTheme.surfaceCard,
+                                              backgroundColor: context.colors.surfaceCard,
                                               title: const Text('Excluir Categoria'),
                                               content: Text(
                                                   'Deseja excluir a categoria "${category.name}"?'),
@@ -405,13 +405,13 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.category_outlined,
-                                    size: 64, color: AppTheme.textMuted),
+                                    size: 64, color: context.colors.textMuted),
                                 const SizedBox(height: 16),
                                 Text(
                                   'Selecione uma categoria acima\npara gerenciar suas atividades.',
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.inter(
-                                      color: AppTheme.textMuted, fontSize: 14),
+                                      color: context.colors.textMuted, fontSize: 14),
                                 ),
                               ],
                             ),
@@ -440,7 +440,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                                               : 'Sem descrição cadastrada.',
                                           style: GoogleFonts.inter(
                                               fontSize: 12,
-                                              color: AppTheme.textSecondary),
+                                              color: context.colors.textSecondary),
                                         ),
                                       ],
                                     ),
@@ -452,7 +452,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                                     label: const Text('Atividade'),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppTheme.accentCyan,
-                                      foregroundColor: AppTheme.primaryDark,
+                                      foregroundColor: context.colors.primaryDark,
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 12, vertical: 8),
                                       shape: RoundedRectangleBorder(
@@ -468,7 +468,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                                         child: Text(
                                           'Nenhuma atividade cadastrada para esta categoria.',
                                           style: GoogleFonts.inter(
-                                              color: AppTheme.textMuted,
+                                              color: context.colors.textMuted,
                                               fontSize: 13),
                                         ),
                                       )
@@ -486,7 +486,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                                                   bottom: 8),
                                               padding: const EdgeInsets.all(14),
                                               decoration: BoxDecoration(
-                                                color: AppTheme.surfaceCard,
+                                                color: context.colors.surfaceCard,
                                                 borderRadius:
                                                     BorderRadius.circular(14),
                                                 border: Border.all(
@@ -516,8 +516,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                                                           Text(
                                                             activity.description,
                                                             style: GoogleFonts.inter(
-                                                                color: AppTheme
-                                                                    .textSecondary,
+                                                                color: context.colors.textSecondary,
                                                                 fontSize: 12),
                                                           ),
                                                         ],
@@ -537,8 +536,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                                                         builder: (c) =>
                                                             AlertDialog(
                                                           backgroundColor:
-                                                              AppTheme
-                                                                  .surfaceCard,
+                                                              context.colors.surfaceCard,
                                                           title: const Text(
                                                               'Excluir Atividade'),
                                                           content: Text(

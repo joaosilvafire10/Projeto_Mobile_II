@@ -109,7 +109,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       'Preencha as informações para criar uma nova conta no sistema.',
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: AppTheme.textMuted,
+                        color: context.colors.textMuted,
                       ),
                     ),
                   ),
@@ -293,8 +293,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: AppTheme.textMuted.withValues(alpha: 0.5)),
-            prefixIcon: Icon(icon, color: AppTheme.textMuted, size: 20),
+            hintStyle: TextStyle(color: context.colors.textMuted.withValues(alpha: 0.5)),
+            prefixIcon: Icon(icon, color: context.colors.textMuted, size: 20),
             filled: true,
             fillColor: Colors.white.withValues(alpha: 0.05),
             enabledBorder: OutlineInputBorder(
@@ -349,7 +349,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               value: value,
               isExpanded: true,
               dropdownColor: const Color(0xFF1A1F40),
-              icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.textMuted),
+              icon: Icon(Icons.keyboard_arrow_down, color: context.colors.textMuted),
               style: const TextStyle(color: Colors.white),
               items: items.map((String item) {
                 return DropdownMenuItem<String>(

@@ -5,6 +5,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:intl/intl.dart';
 import '../providers/auth_provider.dart';
 import '../providers/ticket_provider.dart';
+import '../providers/theme_provider.dart';
 import '../models/ticket_model.dart';
 import '../theme/app_theme.dart';
 import 'ticket_detail_screen.dart';
@@ -20,6 +21,9 @@ class _TicketsScreenState extends State<TicketsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _dateFormat = DateFormat('dd/MM/yyyy HH:mm');
+
+  String _selectedCategory = 'Todas';
+  DateTimeRange? _selectedDateRange;
 
   @override
   void initState() {
@@ -51,6 +55,15 @@ class _TicketsScreenState extends State<TicketsScreen>
         return Scaffold(
           appBar: AppBar(
             title: Text(titleText),
+            actions: [
+              Consumer<ThemeProvider>(
+                builder: (context, theme, _) => IconButton(
+                  icon: Icon(theme.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
+                  onPressed: () => theme.toggleTheme(),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
             leading: Builder(
               builder: (ctx) => IconButton(
                 icon: const Icon(Icons.menu_rounded),
@@ -67,7 +80,7 @@ class _TicketsScreenState extends State<TicketsScreen>
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                    color: AppTheme.surfaceCard,
+                    color: context.colors.surfaceCard,
                     borderRadius: BorderRadius.circular(12)),
                 child: TabBar(
                   controller: _tabController,
@@ -75,7 +88,7 @@ class _TicketsScreenState extends State<TicketsScreen>
                       gradient: AppTheme.primaryGradient,
                       borderRadius: BorderRadius.circular(12)),
                   labelColor: Colors.white,
-                  unselectedLabelColor: AppTheme.textMuted,
+                  unselectedLabelColor: context.colors.textMuted,
                   labelStyle:
                       GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
                   unselectedLabelStyle: GoogleFonts.inter(fontSize: 12),
@@ -104,13 +117,13 @@ class _TicketsScreenState extends State<TicketsScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.wifi_off_rounded,
-                          size: 48, color: AppTheme.textMuted),
+                      Icon(Icons.wifi_off_rounded,
+                          size: 48, color: context.colors.textMuted),
                       const SizedBox(height: 16),
                       Text(
                         tp.errorMessage!,
                         style: GoogleFonts.inter(
-                            fontSize: 14, color: AppTheme.textSecondary),
+                            fontSize: 14, color: context.colors.textSecondary),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
@@ -124,9 +137,13 @@ class _TicketsScreenState extends State<TicketsScreen>
                 );
               }
 
-              return RefreshIndicator(
-                onRefresh: tp.fetchTickets,
-                child: TabBarView(
+              return Column(
+                children: [
+                  _buildFilters(tp),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: tp.fetchTickets,
+                      child: TabBarView(
                   controller: _tabController,
                   children: [
                     _buildTicketList(tp.tickets),
@@ -142,7 +159,10 @@ class _TicketsScreenState extends State<TicketsScreen>
                             t.status == TicketStatus.closed)
                         .toList()),
                   ],
-                ),
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           ),
@@ -151,29 +171,157 @@ class _TicketsScreenState extends State<TicketsScreen>
     );
   }
 
+  Widget _buildFilters(TicketProvider tp) {
+    final categories = ['Todas', ...tp.tickets.map((t) => t.category).toSet().toList()..sort()];
+    
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      decoration: BoxDecoration(
+        color: context.colors.primaryDark,
+        border: Border(bottom: BorderSide(color: context.colors.dividerColor)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _buildDropdown(
+                  value: _selectedCategory,
+                  items: categories,
+                  onChanged: (v) => setState(() => _selectedCategory = v!),
+                  icon: Icons.category_rounded,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    final range = await showDateRangePicker(
+                      context: context,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                      initialDateRange: _selectedDateRange,
+                    );
+                    if (range != null) {
+                      setState(() => _selectedDateRange = range);
+                    }
+                  },
+                  icon: Icon(Icons.calendar_today_rounded, size: 18, color: context.colors.textSecondary),
+                  label: Text(
+                    _selectedDateRange == null
+                        ? 'Período'
+                        : ' - ',
+                    style: GoogleFonts.inter(fontSize: 13, color: context.colors.textSecondary),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: BorderSide(color: context.colors.dividerColor),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedCategory = 'Todas';
+                    _selectedDateRange = null;
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentBlue,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: Text('Limpar', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdown({
+    required String value,
+    required List<String> items,
+    required void Function(String?) onChanged,
+    required IconData icon,
+  }) {
+    final safeValue = items.contains(value) ? value : items.first;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceElevated,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: context.colors.dividerColor),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: safeValue,
+          isExpanded: true,
+          icon: Icon(Icons.keyboard_arrow_down_rounded, color: context.colors.textMuted),
+          dropdownColor: context.colors.surfaceCard,
+          items: items.map((e) => DropdownMenuItem(
+            value: e,
+            child: Row(
+              children: [
+                Icon(icon, size: 16, color: context.colors.textSecondary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(e, style: GoogleFonts.inter(fontSize: 13, color: context.colors.textPrimary), overflow: TextOverflow.ellipsis),
+                ),
+              ],
+            ),
+          )).toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
   Widget _buildTicketList(List<TicketModel> tickets) {
-    if (tickets.isEmpty) {
+    var filtered = tickets.where((t) {
+      bool passCat = _selectedCategory == 'Todas' || t.category == _selectedCategory;
+      bool passDate = true;
+      if (_selectedDateRange != null) {
+        final start = _selectedDateRange!.start;
+        final end = _selectedDateRange!.end.add(const Duration(days: 1)).subtract(const Duration(milliseconds: 1));
+        passDate = t.createdAt.isAfter(start) && t.createdAt.isBefore(end);
+      }
+      return passCat && passDate;
+    }).toList();
+
+    if (filtered.isEmpty) {
       return Center(
         child: FadeIn(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                  color: AppTheme.surfaceCard, shape: BoxShape.circle),
-              child: const Icon(Icons.confirmation_number_outlined,
-                  size: 48, color: AppTheme.textMuted),
+                  color: context.colors.surfaceCard, shape: BoxShape.circle),
+              child: Icon(Icons.confirmation_number_outlined,
+                  size: 48, color: context.colors.textMuted),
             ),
             const SizedBox(height: 20),
             Text('Nenhum chamado encontrado',
                 style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary)),
+                    color: context.colors.textSecondary)),
             const SizedBox(height: 8),
-            Text('Inicie um atendimento com a IA\npara criar chamados',
+            Text('Inicie um atendimento com a IA\npara criar chamados ou ajuste os filtros',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
-                    fontSize: 13, color: AppTheme.textMuted)),
+                    fontSize: 13, color: context.colors.textMuted)),
           ]),
         ),
       );
@@ -181,11 +329,11 @@ class _TicketsScreenState extends State<TicketsScreen>
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: tickets.length,
+      itemCount: filtered.length,
       itemBuilder: (_, i) => FadeInUp(
         delay: Duration(milliseconds: i * 100),
         duration: const Duration(milliseconds: 400),
-        child: _buildTicketCard(tickets[i]),
+        child: _buildTicketCard(filtered[i]),
       ),
     );
   }
@@ -195,11 +343,11 @@ class _TicketsScreenState extends State<TicketsScreen>
       TicketStatus.open => (AppTheme.accentOrange, 'Aberto', Icons.fiber_new_rounded),
       TicketStatus.inProgress => (AppTheme.accentBlue, 'Em Andamento', Icons.sync_rounded),
       TicketStatus.resolved => (AppTheme.success, 'Resolvido', Icons.check_circle_rounded),
-      TicketStatus.closed => (AppTheme.textMuted, 'Fechado', Icons.archive_rounded),
+      TicketStatus.closed => (context.colors.textMuted, 'Fechado', Icons.archive_rounded),
     };
 
     final (Color pc, String ps) = switch (ticket.priority) {
-      TicketPriority.low => (AppTheme.textMuted, 'Baixa'),
+      TicketPriority.low => (context.colors.textMuted, 'Baixa'),
       TicketPriority.medium => (AppTheme.warning, 'Média'),
       TicketPriority.high => (AppTheme.accentOrange, 'Alta'),
       TicketPriority.critical => (AppTheme.error, 'Crítica'),
@@ -213,7 +361,7 @@ class _TicketsScreenState extends State<TicketsScreen>
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
         padding: const EdgeInsets.all(18),
-        decoration: AppTheme.glassCard,
+        decoration: context.glassCard,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           // Header
           Row(children: [
@@ -233,13 +381,13 @@ class _TicketsScreenState extends State<TicketsScreen>
                         style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppTheme.textPrimary),
+                            color: context.colors.textPrimary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 2),
                     Text('#${ticket.id.substring(0, 8).toUpperCase()}',
                         style: GoogleFonts.firaCode(
-                            fontSize: 11, color: AppTheme.textMuted)),
+                            fontSize: 11, color: context.colors.textMuted)),
                   ]),
             ),
             Container(
@@ -255,7 +403,7 @@ class _TicketsScreenState extends State<TicketsScreen>
           Text(ticket.description,
               style: GoogleFonts.inter(
                   fontSize: 13,
-                  color: AppTheme.textSecondary,
+                  color: context.colors.textSecondary,
                   height: 1.4),
               maxLines: 2,
               overflow: TextOverflow.ellipsis),
@@ -264,7 +412,7 @@ class _TicketsScreenState extends State<TicketsScreen>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppTheme.primaryDark.withValues(alpha: 0.5),
+              color: context.colors.primaryDark.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(children: [
@@ -274,7 +422,7 @@ class _TicketsScreenState extends State<TicketsScreen>
               const Spacer(),
               Text(_dateFormat.format(ticket.createdAt),
                   style:
-                      GoogleFonts.inter(fontSize: 10, color: AppTheme.textMuted)),
+                      GoogleFonts.inter(fontSize: 10, color: context.colors.textMuted)),
             ]),
           ),
         ]),
@@ -283,7 +431,7 @@ class _TicketsScreenState extends State<TicketsScreen>
   }
 
   Widget _infoChip(IconData icon, String text, {Color? color}) {
-    final c = color ?? AppTheme.textMuted;
+    final c = color ?? context.colors.textMuted;
     return Row(mainAxisSize: MainAxisSize.min, children: [
       Icon(icon, size: 13, color: c),
       const SizedBox(width: 4),

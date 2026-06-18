@@ -64,7 +64,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.surfaceCard,
+      backgroundColor: context.colors.surfaceCard,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -95,18 +95,18 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: ctx,
       builder: (_) => AlertDialog(
-        backgroundColor: AppTheme.surfaceCard,
+        backgroundColor: context.colors.surfaceCard,
         title: Text('Excluir Chamado',
             style: GoogleFonts.inter(
-                fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+                fontWeight: FontWeight.bold, color: context.colors.textPrimary)),
         content: Text(
             'Tem certeza que deseja excluir este chamado? Esta ação não pode ser desfeita.',
-            style: GoogleFonts.inter(color: AppTheme.textSecondary)),
+            style: GoogleFonts.inter(color: context.colors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Cancelar',
-                style: GoogleFonts.inter(color: AppTheme.textMuted)),
+                style: GoogleFonts.inter(color: context.colors.textMuted)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -165,11 +165,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           TicketStatus.open => (AppTheme.accentOrange, 'Aberto', Icons.fiber_new_rounded),
           TicketStatus.inProgress => (AppTheme.accentBlue, 'Em Andamento', Icons.sync_rounded),
           TicketStatus.resolved => (AppTheme.success, 'Resolvido', Icons.check_circle_rounded),
-          TicketStatus.closed => (AppTheme.textMuted, 'Fechado', Icons.archive_rounded),
+          TicketStatus.closed => (context.colors.textMuted, 'Fechado', Icons.archive_rounded),
         };
 
         final (Color pc, String ps) = switch (ticket.priority) {
-          TicketPriority.low => (AppTheme.textMuted, 'Baixa'),
+          TicketPriority.low => (context.colors.textMuted, 'Baixa'),
           TicketPriority.medium => (AppTheme.warning, 'Média'),
           TicketPriority.high => (AppTheme.accentOrange, 'Alta'),
           TicketPriority.critical => (AppTheme.error, 'Crítica'),
@@ -207,7 +207,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                       duration: const Duration(milliseconds: 300),
                       child: Container(
                         padding: const EdgeInsets.all(20),
-                        decoration: AppTheme.glassCard,
+                        decoration: context.glassCard,
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Row(children: [
                             _badge(ss, sc, si),
@@ -216,10 +216,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                           ]),
                           const SizedBox(height: 16),
                           Text(ticket.title, style: GoogleFonts.inter(
-                              fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                              fontSize: 18, fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
                           const SizedBox(height: 12),
                           Text(ticket.description, style: GoogleFonts.inter(
-                              fontSize: 14, color: AppTheme.textSecondary, height: 1.5)),
+                              fontSize: 14, color: context.colors.textSecondary, height: 1.5)),
                         ]),
                       ),
                     ),
@@ -231,7 +231,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                       duration: const Duration(milliseconds: 300),
                       child: Container(
                         padding: const EdgeInsets.all(20),
-                        decoration: AppTheme.glassCard,
+                        decoration: context.glassCard,
                         child: Column(children: [
                           _infoRow(Icons.folder_outlined, 'Categoria', ticket.category),
                           _divider(),
@@ -315,7 +315,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         duration: const Duration(milliseconds: 300),
                         child: Container(
                           padding: const EdgeInsets.all(20),
-                          decoration: AppTheme.glassCard,
+                          decoration: context.glassCard,
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             Row(children: [
                               Container(
@@ -327,19 +327,19 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                               ),
                               const SizedBox(width: 12),
                               Text('Resumo da IA', style: GoogleFonts.inter(
-                                  fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                                  fontSize: 16, fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
                             ]),
                             const SizedBox(height: 16),
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryDark.withValues(alpha: 0.6),
+                                color: context.colors.primaryDark.withValues(alpha: 0.6),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: AppTheme.accentBlue.withValues(alpha: 0.1)),
                               ),
                               child: Text(ticket.aiSummary, style: GoogleFonts.firaCode(
-                                  fontSize: 12, color: AppTheme.textSecondary, height: 1.6)),
+                                  fontSize: 12, color: context.colors.textSecondary, height: 1.6)),
                             ),
                           ]),
                         ),
@@ -353,16 +353,16 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                         duration: const Duration(milliseconds: 300),
                         child: Container(
                           padding: const EdgeInsets.all(20),
-                          decoration: AppTheme.glassCard,
+                          decoration: context.glassCard,
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             Row(children: [
                               const Icon(Icons.smart_toy_rounded, size: 20, color: AppTheme.accentCyan),
                               const SizedBox(width: 10),
                               Text('Conversa com IA', style: GoogleFonts.inter(
-                                  fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                                  fontSize: 16, fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
                               const Spacer(),
                               Text('${ticket.chatHistory.length} msgs', style: GoogleFonts.inter(
-                                  fontSize: 12, color: AppTheme.textMuted)),
+                                  fontSize: 12, color: context.colors.textMuted)),
                             ]),
                             const SizedBox(height: 16),
                             ...ticket.chatHistory.map((m) => _chatBubble(m)),
@@ -378,13 +378,13 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                       duration: const Duration(milliseconds: 300),
                       child: Container(
                         padding: const EdgeInsets.all(20),
-                        decoration: AppTheme.glassCard,
+                        decoration: context.glassCard,
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Row(children: [
                             const Icon(Icons.forum_rounded, size: 20, color: AppTheme.accentBlue),
                             const SizedBox(width: 10),
                             Text('Mensagens', style: GoogleFonts.inter(
-                                fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                                fontSize: 16, fontWeight: FontWeight.w700, color: context.colors.textPrimary)),
                             const Spacer(),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -399,18 +399,18 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                               width: double.infinity,
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryDark.withValues(alpha: 0.4),
+                                color: context.colors.primaryDark.withValues(alpha: 0.4),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Column(children: [
                                 Icon(Icons.chat_bubble_outline_rounded, size: 32,
-                                    color: AppTheme.textMuted.withValues(alpha: 0.5)),
+                                    color: context.colors.textMuted.withValues(alpha: 0.5)),
                                 const SizedBox(height: 8),
                                 Text('Nenhuma mensagem ainda',
-                                    style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textMuted)),
+                                    style: GoogleFonts.inter(fontSize: 13, color: context.colors.textMuted)),
                                 const SizedBox(height: 4),
                                 Text('Envie a primeira mensagem abaixo',
-                                    style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted)),
+                                    style: GoogleFonts.inter(fontSize: 11, color: context.colors.textMuted)),
                               ]),
                             )
                           else
@@ -439,12 +439,12 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.primaryMid,
+          color: context.colors.primaryMid,
           border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
         ),
         child: Center(
           child: Text('Chamado fechado — não é possível enviar novas mensagens.',
-              style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted)),
+              style: GoogleFonts.inter(fontSize: 12, color: context.colors.textMuted)),
         ),
       );
     }
@@ -452,7 +452,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryMid,
+        color: context.colors.primaryMid,
         border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
       ),
       child: SafeArea(
@@ -461,20 +461,20 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: AppTheme.surfaceElevated,
+                color: context.colors.surfaceElevated,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
               ),
               child: TextField(
                 controller: _commentController,
-                style: GoogleFonts.inter(color: AppTheme.textPrimary, fontSize: 14),
+                style: GoogleFonts.inter(color: context.colors.textPrimary, fontSize: 14),
                 maxLines: 4,
                 minLines: 1,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _sendComment(),
                 decoration: InputDecoration(
                   hintText: 'Escreva uma mensagem...',
-                  hintStyle: GoogleFonts.inter(color: AppTheme.textMuted, fontSize: 14),
+                  hintStyle: GoogleFonts.inter(color: context.colors.textMuted, fontSize: 14),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
@@ -521,18 +521,18 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(children: [
-        Icon(icon, size: 18, color: AppTheme.textMuted),
+        Icon(icon, size: 18, color: context.colors.textMuted),
         const SizedBox(width: 12),
-        Text(label, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textMuted)),
+        Text(label, style: GoogleFonts.inter(fontSize: 13, color: context.colors.textMuted)),
         const Spacer(),
         Flexible(child: Text(value,
-            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: context.colors.textPrimary),
             textAlign: TextAlign.end)),
       ]),
     );
   }
 
-  Widget _divider() => Divider(color: AppTheme.dividerColor.withValues(alpha: 0.5), height: 20);
+  Widget _divider() => Divider(color: context.colors.dividerColor.withValues(alpha: 0.5), height: 20);
 
   Widget _commentBubble(MessageModel m) {
     final timeStr = DateFormat('dd/MM HH:mm').format(m.timestamp);
@@ -542,7 +542,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceElevated.withValues(alpha: 0.6),
+          color: context.colors.surfaceElevated.withValues(alpha: 0.6),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppTheme.accentBlue.withValues(alpha: 0.1)),
         ),
@@ -560,10 +560,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             Text(m.senderName ?? 'Usuário',
                 style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.accentBlue)),
             const Spacer(),
-            Text(timeStr, style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textMuted)),
+            Text(timeStr, style: GoogleFonts.inter(fontSize: 10, color: context.colors.textMuted)),
           ]),
           const SizedBox(height: 10),
-          Text(m.content, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textPrimary, height: 1.5)),
+          Text(m.content, style: GoogleFonts.inter(fontSize: 13, color: context.colors.textPrimary, height: 1.5)),
         ]),
       ),
     );
@@ -577,7 +577,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       decoration: BoxDecoration(
         color: isUser
             ? AppTheme.accentBlue.withValues(alpha: 0.1)
-            : AppTheme.primaryDark.withValues(alpha: 0.5),
+            : context.colors.primaryDark.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: (isUser ? AppTheme.accentBlue : Colors.white).withValues(alpha: 0.08)),
       ),
@@ -590,7 +590,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               fontWeight: FontWeight.w600, color: isUser ? AppTheme.accentBlue : AppTheme.accentCyan)),
         ]),
         const SizedBox(height: 6),
-        Text(m.content, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary, height: 1.4)),
+        Text(m.content, style: GoogleFonts.inter(fontSize: 12, color: context.colors.textSecondary, height: 1.4)),
       ]),
     );
   }
@@ -655,7 +655,7 @@ class _EditStatusSheetState extends State<_EditStatusSheet> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: AppTheme.textMuted,
+                      color: context.colors.textMuted,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -667,7 +667,7 @@ class _EditStatusSheetState extends State<_EditStatusSheet> {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                 ),
@@ -679,7 +679,7 @@ class _EditStatusSheetState extends State<_EditStatusSheet> {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -710,7 +710,7 @@ class _EditStatusSheetState extends State<_EditStatusSheet> {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -740,7 +740,7 @@ class _EditStatusSheetState extends State<_EditStatusSheet> {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -759,7 +759,7 @@ class _EditStatusSheetState extends State<_EditStatusSheet> {
                       TicketStatus.open => AppTheme.accentOrange,
                       TicketStatus.inProgress => AppTheme.accentBlue,
                       TicketStatus.resolved => AppTheme.success,
-                      TicketStatus.closed => AppTheme.textMuted,
+                      TicketStatus.closed => context.colors.textMuted,
                     };
                     return GestureDetector(
                       onTap: () => setState(() => _status = s),
@@ -771,7 +771,7 @@ class _EditStatusSheetState extends State<_EditStatusSheet> {
                         decoration: BoxDecoration(
                           color: selected
                               ? color.withValues(alpha: 0.2)
-                              : AppTheme.surfaceElevated,
+                              : context.colors.surfaceElevated,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: selected
@@ -785,7 +785,7 @@ class _EditStatusSheetState extends State<_EditStatusSheet> {
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: selected ? color : AppTheme.textSecondary,
+                            color: selected ? color : context.colors.textSecondary,
                           ),
                         ),
                       ),
@@ -800,7 +800,7 @@ class _EditStatusSheetState extends State<_EditStatusSheet> {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -816,7 +816,7 @@ class _EditStatusSheetState extends State<_EditStatusSheet> {
                       TicketPriority.critical => 'Crítica',
                     };
                     final color = switch (p) {
-                      TicketPriority.low => AppTheme.textMuted,
+                      TicketPriority.low => context.colors.textMuted,
                       TicketPriority.medium => AppTheme.warning,
                       TicketPriority.high => AppTheme.accentOrange,
                       TicketPriority.critical => AppTheme.error,
@@ -831,7 +831,7 @@ class _EditStatusSheetState extends State<_EditStatusSheet> {
                         decoration: BoxDecoration(
                           color: selected
                               ? color.withValues(alpha: 0.2)
-                              : AppTheme.surfaceElevated,
+                              : context.colors.surfaceElevated,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: selected
@@ -845,7 +845,7 @@ class _EditStatusSheetState extends State<_EditStatusSheet> {
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: selected ? color : AppTheme.textSecondary,
+                            color: selected ? color : context.colors.textSecondary,
                           ),
                         ),
                       ),

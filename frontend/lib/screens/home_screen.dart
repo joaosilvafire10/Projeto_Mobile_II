@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppTheme.primaryMid,
+          color: context.colors.primaryMid,
           border: Border(
             top: BorderSide(
               color: Colors.white.withValues(alpha: 0.06),
@@ -91,14 +91,14 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppTheme.accentBlue : AppTheme.textMuted,
+              color: isSelected ? AppTheme.accentBlue : context.colors.textMuted,
               size: 24,
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: GoogleFonts.inter(
-                color: isSelected ? AppTheme.accentBlue : AppTheme.textMuted,
+                color: isSelected ? AppTheme.accentBlue : context.colors.textMuted,
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
@@ -139,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             'Atendimento',
             style: GoogleFonts.inter(
-              color: isSelected ? AppTheme.accentBlue : AppTheme.textMuted,
+              color: isSelected ? AppTheme.accentBlue : context.colors.textMuted,
               fontSize: 11,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
             ),
@@ -154,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final ticketProvider = context.watch<TicketProvider>();
 
     return Drawer(
-      backgroundColor: AppTheme.primaryMid,
+      backgroundColor: context.colors.primaryMid,
       child: Column(
         children: [
           Container(
@@ -271,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           ],
-          const Divider(color: AppTheme.dividerColor, height: 32),
+          Divider(color: context.colors.dividerColor, height: 32),
           const Spacer(),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -313,11 +313,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildDrawerItem(IconData icon, String label, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(icon, color: AppTheme.textSecondary, size: 22),
+      leading: Icon(icon, color: context.colors.textSecondary, size: 22),
       title: Text(
         label,
         style: GoogleFonts.inter(
-          color: AppTheme.textPrimary,
+          color: context.colors.textPrimary,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
@@ -325,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      hoverColor: AppTheme.surfaceElevated,
+      hoverColor: context.colors.surfaceElevated,
     );
   }
 }

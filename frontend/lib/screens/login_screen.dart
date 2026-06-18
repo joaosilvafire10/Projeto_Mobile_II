@@ -197,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen>
                             _obscurePassword
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
-                            color: AppTheme.textMuted,
+                            color: context.colors.textMuted,
                             size: 20,
                           ),
                           onPressed: () => setState(
@@ -345,10 +345,10 @@ class _LoginScreenState extends State<LoginScreen>
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
-      style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15),
+      style: TextStyle(color: context.colors.textPrimary, fontSize: 15),
       decoration: InputDecoration(
         hintText: hint,
-        prefixIcon: Icon(icon, color: AppTheme.textMuted, size: 22),
+        prefixIcon: Icon(icon, color: context.colors.textMuted, size: 22),
         suffixIcon: suffixIcon,
       ),
     );

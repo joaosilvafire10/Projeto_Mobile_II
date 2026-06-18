@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
 import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
+import '../providers/theme_provider.dart';
 import '../providers/ticket_provider.dart';
 import '../providers/category_provider.dart';
 import '../models/category_model.dart';
@@ -153,7 +154,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 'Selecione a categoria e atividade para iniciar o atendimento inteligente de suporte corporativo.',
                 style: GoogleFonts.inter(
                   fontSize: 14,
-                  color: AppTheme.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
             ),
@@ -205,17 +206,17 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceCard,
+                  color: context.colors.surfaceCard,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<CategoryModel>(
                     isExpanded: true,
-                    dropdownColor: AppTheme.surfaceCard,
+                    dropdownColor: context.colors.surfaceCard,
                     hint: Text(
                       'Escolha uma Categoria...',
-                      style: GoogleFonts.inter(color: AppTheme.textMuted),
+                      style: GoogleFonts.inter(color: context.colors.textMuted),
                     ),
                     value: _selectedCategory,
                     icon: const Icon(Icons.keyboard_arrow_down_rounded,
@@ -260,17 +261,17 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceCard,
+                    color: context.colors.surfaceCard,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<ActivityModel>(
                       isExpanded: true,
-                      dropdownColor: AppTheme.surfaceCard,
+                      dropdownColor: context.colors.surfaceCard,
                       hint: Text(
                         'Escolha uma Atividade...',
-                        style: GoogleFonts.inter(color: AppTheme.textMuted),
+                        style: GoogleFonts.inter(color: context.colors.textMuted),
                       ),
                       value: _selectedActivity,
                       icon: const Icon(Icons.keyboard_arrow_down_rounded,
@@ -385,7 +386,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary)),
+                    color: context.colors.textPrimary)),
             Text(
               chat.isAiTyping ? 'Analisando...' : 'Online',
               style: GoogleFonts.inter(
@@ -485,7 +486,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryMid,
+        color: context.colors.primaryMid,
         border: Border(
             top: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
       ),
@@ -495,20 +496,20 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: AppTheme.surfaceElevated,
+                color: context.colors.surfaceElevated,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
               ),
               child: TextField(
                 controller: _messageController,
-                style: GoogleFonts.inter(color: AppTheme.textPrimary, fontSize: 14),
+                style: GoogleFonts.inter(color: context.colors.textPrimary, fontSize: 14),
                 maxLines: 4,
                 minLines: 1,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _sendMessage(),
                 decoration: InputDecoration(
                   hintText: 'Descreva seu problema...',
-                  hintStyle: GoogleFonts.inter(color: AppTheme.textMuted, fontSize: 14),
+                  hintStyle: GoogleFonts.inter(color: context.colors.textMuted, fontSize: 14),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: 20, vertical: 12),
@@ -557,7 +558,7 @@ class _ChatScreenState extends State<ChatScreen> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppTheme.success.withValues(alpha: 0.2)),
           ),
-          child: _parseMarkdown(message.content, AppTheme.textPrimary),
+          child: _parseMarkdown(message.content, context.colors.textPrimary),
         ),
       );
     }
@@ -590,7 +591,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: isUser ? AppTheme.accentBlue : AppTheme.surfaceCard,
+                    color: isUser ? AppTheme.accentBlue : context.colors.surfaceCard,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(18),
                       topRight: const Radius.circular(18),
@@ -610,7 +611,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   child: _parseMarkdown(
                     message.content,
-                    isUser ? Colors.white : AppTheme.textPrimary,
+                    isUser ? Colors.white : context.colors.textPrimary,
                   ),
                 ),
               ),
@@ -676,7 +677,7 @@ class _ChatScreenState extends State<ChatScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
-                color: AppTheme.surfaceCard,
+                color: context.colors.surfaceCard,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(18),
                   topRight: Radius.circular(18),
@@ -707,7 +708,7 @@ class _ChatScreenState extends State<ChatScreen> {
         width: 8,
         height: 8,
         decoration:
-            BoxDecoration(color: AppTheme.textMuted, shape: BoxShape.circle),
+            BoxDecoration(color: context.colors.textMuted, shape: BoxShape.circle),
       ),
     );
   }
