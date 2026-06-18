@@ -66,26 +66,47 @@ const createTicketSchema = z.object({
     .string({ required_error: "Título é obrigatório." })
     .min(5, "Título deve ter pelo menos 5 caracteres.")
     .max(200, "Título deve ter no máximo 200 caracteres."),
+
   description: z
     .string({ required_error: "Descrição é obrigatória." })
     .min(10, "Descrição deve ter pelo menos 10 caracteres.")
     .max(5000, "Descrição deve ter no máximo 5000 caracteres."),
+
   priority: z
-    .enum(["BAIXA", "MEDIA", "ALTA", "CRITICA"], {
-      errorMap: () => ({ message: "Prioridade deve ser BAIXA, MEDIA, ALTA ou CRITICA." }),
-    })
+    .string()
+    .transform((value) => value.trim().toUpperCase())
+    .pipe(
+      z.enum(["BAIXA", "MEDIA", "ALTA", "CRITICA"])
+    )
     .optional()
     .default("MEDIA"),
+
   department: z
-    .enum(
-      ["TI", "FINANCEIRO", "CONTABILIDADE"],
-      { errorMap: () => ({ message: "Departamento inválido. Escolha entre TI, FINANCEIRO ou CONTABILIDADE." }) }
+    .string()
+    .transform((value) => value.trim().toUpperCase())
+    .pipe(
+      z.enum(["TI", "FINANCEIRO", "CONTABILIDADE"])
     )
     .optional()
     .default("TI"),
-  categoryId: z.string().uuid("ID da categoria inválido.").optional().nullable(),
-  activityId: z.string().uuid("ID da atividade inválido.").optional().nullable(),
-  aiSummary: z.string().max(10000).optional().nullable(),
+
+  categoryId: z
+    .string()
+    .uuid("ID da categoria inválido.")
+    .optional()
+    .nullable(),
+
+  activityId: z
+    .string()
+    .uuid("ID da atividade inválido.")
+    .optional()
+    .nullable(),
+
+  aiSummary: z
+    .string()
+    .max(10000)
+    .optional()
+    .nullable(),
 });
 
 const updateTicketSchema = z.object({
