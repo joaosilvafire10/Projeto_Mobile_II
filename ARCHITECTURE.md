@@ -15,6 +15,7 @@ O objetivo é garantir:
 ---
 
 # Arquitetura Geral
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/57efd3c5-7c3c-4a08-861c-377d4bc64cea" />
 
 UI
 ↓
