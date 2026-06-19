@@ -33,7 +33,7 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       await logout();
       return false;
-    } finaly {
+    } finally {
       _isLoading = false;
       notifyListeners();
     }
@@ -77,7 +77,7 @@ class AuthProvider extends ChangeNotifier {
         _errorMessage = 'Ocorreu um erro inesperado.';
       }
       return false;
-    } finaly {
+    } finally {
       _isLoading = false;
       notifyListeners();
     }
@@ -87,7 +87,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       await _apiService.dio.post('/auth/logout');
     } catch (_) {
-    } finaly {
+    } finally {
       await _apiService.clearTokens();
       _currentUser = null;
       _errorMessage = null;
