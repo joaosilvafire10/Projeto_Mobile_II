@@ -88,8 +88,8 @@ REGRAS IMPORTANTES:
 {"criar_chamado": true, "titulo": "Título descritivo do problema", "descricao": "Descrição técnica detalhada", "prioridade": "MEDIA", "departamento": "TI", "resumo_ia": "Resumo técnico da triagem realizada pela IA, incluindo informações coletadas e tentativas de resolução."}
 
 IMPORTANTE:
-- O campo "departamento" DEVE ser exatamente um dos valores: TI, FINANCEIRO ou CONTABILIDADE.
-- Só responda no formato JSON quando tiver informações suficientes para criar um chamado bem estruturado. Antes disso, faça perguntas e tente resolver.`;
+- O campo "departamento" DEVE ser exatamente um dos valores: TI, FINANCEIRO ou CONTABILIDADE. Use o valor correspondente à categoria em contexto se disponível (ex: se o contexto for de "Financeiro", use "FINANCEIRO"; se "Contabilidade", use "CONTABILIDADE"; se "TI", use "TI").
+- Só responda no formato JSON quando tiver informações suficientes para criar um chamado bem estruturado. Antes disso, faça perguntas e tente resolver.`
   }
 
   /**
@@ -104,10 +104,10 @@ IMPORTANTE:
           aiResponse = await this._processWithGemini(message, conversationHistory, categoryName, activityName);
         } catch (geminiError) {
           console.warn("⚠️ Falha ao comunicar com a API do Gemini. Usando modo simulado como fallback. Detalhes:", geminiError.message);
-          aiResponse = this._processSimulated(message, conversationHistory);
+          aiResponse = this._processSimulated(message, conversationHistory, categoryName);
         }
       } else {
-        aiResponse = this._processSimulated(message, conversationHistory);
+        aiResponse = this._processSimulated(message, conversationHistory, categoryName);
       }
 
       // Verificar se a IA quer criar um chamado
@@ -188,6 +188,8 @@ IMPORTANTE:
           type: "ticket_created",
           message: systemMessage,
           ticket,
+          department: ticket.department,
+          priority: ticket.priority,
         };
       }
 
@@ -206,9 +208,14 @@ IMPORTANTE:
         });
       }
 
+      const detectedDept = this._detectDepartment(message, conversationHistory, categoryName);
+      const detectedPriority = this._detectPriority(message, conversationHistory);
+
       return {
         type: "response",
         message: aiResponse,
+        department: detectedDept,
+        priority: detectedPriority,
       };
     } catch (error) {
       console.error("❌ Erro no serviço de IA:", error);
@@ -257,7 +264,7 @@ IMPORTANTE:
   /**
    * Modo simulado (quando a API Gemini não está configurada).
    */
-  _processSimulated(message, conversationHistory) {
+  _processSimulated(message, conversationHistory, categoryName) {
     const msgLower = message.toLowerCase();
     const msgCount = conversationHistory.length;
 
@@ -321,7 +328,7 @@ IMPORTANTE:
 
     // Após algumas trocas, criar chamado (simulado)
     if (msgCount >= 4) {
-      const departamento = this._detectDepartment(message, conversationHistory);
+      const departamento = this._detectDepartment(message, conversationHistory, categoryName);
       const prioridade = this._detectPriority(message, conversationHistory);
 
       return JSON.stringify({
@@ -347,7 +354,7 @@ IMPORTANTE:
   /**
    * Detecta o departamento com base nas palavras-chave.
    */
-  _detectDepartment(message, history) {
+  _detectDepartment(message, history, categoryName) {
     const allText = [message, ...history.map((m) => m.content)].join(" ").toLowerCase();
 
     // Financeiro
@@ -358,6 +365,15 @@ IMPORTANTE:
     if (allText.includes("nota fiscal") || allText.includes("imposto") || allText.includes("contábil") || allText.includes("balanço") || allText.includes("conciliação") || allText.includes("contabilidade")) {
       return "CONTABILIDADE";
     }
+
+    // Check categoryName if provided
+    if (categoryName) {
+      const catLower = categoryName.toLowerCase();
+      if (catLower.includes("financeiro")) return "FINANCEIRO";
+      if (catLower.includes("contabilidade")) return "CONTABILIDADE";
+      if (catLower.includes("ti") || catLower.includes("tecnologia")) return "TI";
+    }
+
     // TI (default — engloba rede, segurança, infra, dev, suporte, etc.)
     return "TI";
   }
