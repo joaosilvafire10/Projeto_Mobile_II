@@ -59,6 +59,17 @@ class AIService {
     selectedCategoryId = categoryId;
     selectedActivityId = activityId;
     _identifiedCategory = categoryName;
+    
+    if (categoryName != null) {
+      final catLower = categoryName.toLowerCase();
+      if (catLower.contains('financeiro')) {
+        _identifiedDepartment = 'FINANCEIRO';
+      } else if (catLower.contains('contabilidade')) {
+        _identifiedDepartment = 'CONTABILIDADE';
+      } else {
+        _identifiedDepartment = 'TI';
+      }
+    }
   }
 
   /// Envia mensagem ao backend e retorna a resposta da IA.
