@@ -70,11 +70,16 @@ class AuthProvider extends ChangeNotifier {
       if (e is DioException) {
         if (e.response?.data != null && e.response?.data['message'] != null) {
           _errorMessage = e.response?.data['message'].toString();
+        } else if (e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout) {
+          _errorMessage = 'Tempo de conexão esgotado. Verifique o servidor.';
+        } else if (e.type == DioExceptionType.connectionError) {
+          _errorMessage = 'Não foi possível conectar ao servidor. Verifique a URL da API.';
         } else {
-          _errorMessage = 'Erro de conexão com o servidor Dokploy.';
+          _errorMessage = 'Erro de rede: ${e.message}';
         }
       } else {
-        _errorMessage = 'Ocorreu um erro inesperado.';
+        _errorMessage = 'Erro: ${e.toString()}';
       }
       return false;
     } finally {
