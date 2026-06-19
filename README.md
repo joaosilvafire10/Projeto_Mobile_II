@@ -184,7 +184,7 @@ Senha padrão:
 Com o backend em execução:
 
 ```txt
-http://localhost:3000/api/docs
+[http://localhost:3000/api/docs](http://api.193.122.213.155.nip.io/api/docs)
 ```
 
 O Swagger permite:
