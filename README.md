@@ -161,12 +161,3 @@ http://app.193.122.213.155.nip.io
 * Banco de dados SQLite persistido em volume dedicado;
 * Integração contínua com repositório GitHub;
 * Proxy reverso e gerenciamento de domínios realizados pelo Dokploy.
-
-### Observação
-
-O endereço de produção poderá ser alterado futuramente para um domínio próprio, mantendo a mesma infraestrutura de hospedagem e deploy.
-
-├── services/
-├── repositories/
-├── routes/
-└── prisma/
