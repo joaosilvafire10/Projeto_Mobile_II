@@ -52,7 +52,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       id: _uuid.v4(),
       content: text,
       sender: MessageSender.user,
-      senderName: user.name,
+      senderName: user['name'] as String?,
     );
 
     context.read<TicketProvider>().addComment(widget.ticketId, comment);
@@ -152,12 +152,12 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           );
         }
 
-        final canEdit = currentUser?.role == 'ADMIN' ||
-            (currentUser?.role == 'ANALISTA' && ticket.department == currentUser?.department);
-        final canDelete = currentUser?.role == 'ADMIN' || ticket.userId == currentUser?.id;
-        final canAssign = (currentUser?.role == 'ADMIN' ||
-                (currentUser?.role == 'ANALISTA' && ticket.department == currentUser?.department)) &&
-            ticket.assignedToId != currentUser?.id &&
+        final canEdit = currentUser?['role'] == 'ADMIN' ||
+            (currentUser?['role'] == 'ANALISTA' && ticket.department == currentUser?['department']);
+        final canDelete = currentUser?['role'] == 'ADMIN' || ticket.userId == currentUser?['id'];
+        final canAssign = (currentUser?['role'] == 'ADMIN' ||
+                (currentUser?['role'] == 'ANALISTA' && ticket.department == currentUser?['department'])) &&
+            ticket.assignedToId != currentUser?['id'] &&
             ticket.status != TicketStatus.resolved &&
             ticket.status != TicketStatus.closed;
 
