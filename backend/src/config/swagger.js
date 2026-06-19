@@ -15,8 +15,12 @@ const options = {
     },
     servers: [
       {
+        url: "/",
+        description: "Servidor Atual (Relativo - Recomendado para Deploy)",
+      },
+      {
         url: `http://localhost:${process.env.PORT || 3000}`,
-        description: "Servidor de Desenvolvimento",
+        description: "Servidor de Desenvolvimento Local",
       },
     ],
     components: {
