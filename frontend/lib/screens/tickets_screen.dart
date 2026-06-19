@@ -46,10 +46,10 @@ class _TicketsScreenState extends State<TicketsScreen>
     return Consumer2<TicketProvider, AuthProvider>(
       builder: (context, tp, auth, _) {
         final user = auth.currentUser;
-        final titleText = user?.role == 'ADMIN'
+        final titleText = user?['role'] == 'ADMIN'
             ? 'Todos os Chamados'
-            : user?.role == 'ANALISTA'
-                ? 'Chamados - ${user?.department ?? ""}'
+            : user?['role'] == 'ANALISTA'
+                ? 'Chamados - ${user?['department'] ?? ""}'
                 : 'Meus Chamados';
 
         return Scaffold(

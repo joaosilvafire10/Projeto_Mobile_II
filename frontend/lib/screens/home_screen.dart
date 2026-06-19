@@ -175,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
 
                 Text(
-                  user?.name ?? 'Usuário',
+                  user?['name'] ?? 'Usuário',
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -184,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  user?.email ?? '',
+                  user?['email'] ?? '',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: Colors.white.withValues(alpha: 0.8),
@@ -199,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    user?.department ?? '',
+                    user?['department'] ?? '',
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -239,9 +239,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           _buildDrawerItem(
             Icons.confirmation_number_outlined,
-            user?.role == 'ADMIN'
+            user?['role'] == 'ADMIN'
                 ? 'Todos os Chamados (${ticketProvider.totalTickets})'
-                : user?.role == 'ANALISTA'
+                : user?['role'] == 'ANALISTA'
                     ? 'Chamados do Depto (${ticketProvider.totalTickets})'
                     : 'Meus Chamados (${ticketProvider.totalTickets})',
             () {
@@ -249,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() => _currentIndex = 2);
             },
           ),
-          if (user?.role == 'ADMIN') ...[
+          if (user?['role'] == 'ADMIN') ...[
             _buildDrawerItem(
               Icons.category_rounded,
               'Gerenciar Categorias',

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import '../services/api_service.dart';;
+import '../services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -72,6 +72,50 @@ class AuthProvider extends ChangeNotifier {
           _errorMessage = e.response?.data['message'].toString();
         } else {
           _errorMessage = 'Erro de conexão com o servidor Dokploy.';
+        }
+      } else {
+        _errorMessage = 'Ocorreu um erro inesperado.';
+      }
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> register({
+    required String name,
+    required String email,
+    required String password,
+    required String role,
+    required String department,
+  }) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      final response = await _apiService.dio.post('/auth/register', data: {
+        'name': name,
+        'email': email,
+        'password': password,
+        'role': role,
+        'department': department,
+      });
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _errorMessage = null;
+        return true;
+      }
+
+      _errorMessage = 'Falha ao criar usuário. Tente novamente.';
+      return false;
+    } catch (e) {
+      if (e is DioException) {
+        if (e.response?.data != null && e.response?.data['message'] != null) {
+          _errorMessage = e.response?.data['message'].toString();
+        } else {
+          _errorMessage = 'Erro de conexão com o servidor.';
         }
       } else {
         _errorMessage = 'Ocorreu um erro inesperado.';

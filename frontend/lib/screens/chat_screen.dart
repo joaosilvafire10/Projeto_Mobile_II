@@ -67,7 +67,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _createTicket() async {
     final auth = context.read<AuthProvider>();
     final user = auth.currentUser!;
-    final ticket = await _chatProvider.createTicket(user.id, user.name);
+    final ticket = await _chatProvider.createTicket(user['id'], user['name']);
     _scrollToBottom();
 
     if (!mounted) return;

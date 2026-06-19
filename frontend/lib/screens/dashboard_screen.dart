@@ -52,7 +52,7 @@ class DashboardScreen extends StatelessWidget {
             FadeInDown(
               duration: const Duration(milliseconds: 600),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Olá, ${user?.name.split(' ').first ?? 'Usuário'}! 👋',
+                Text('Olá, ${(user?['name'] as String?)?.split(' ').first ?? 'Usuário'}! 👋',
                     style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w800, color: context.colors.textPrimary)),
                 const SizedBox(height: 4),
                 Text('Veja o resumo dos seus atendimentos',
