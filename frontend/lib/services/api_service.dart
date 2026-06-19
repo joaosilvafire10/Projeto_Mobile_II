@@ -26,7 +26,7 @@ class ApiService {
   ApiService._internal() {
     String baseUrl;
     if (kIsWeb) {
-      baseUrl = 'http://127.0.0.1:3000/api';
+      baseUrl = 'http://api.193.122.213.155.nip.io/api';
     } else {
       try {
         if (defaultTargetPlatform == TargetPlatform.android) {
