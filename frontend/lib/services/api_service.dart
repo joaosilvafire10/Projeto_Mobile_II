@@ -73,7 +73,10 @@ class ApiService {
   // ── Construtor interno ────────────────────────────────────────────────────
 
   ApiService._internal() {
-    const String prodUrl = 'http://api.193.122.213.155.nip.io/api';
+    const String prodUrl = String.fromEnvironment(
+      'API_URL',
+      defaultValue: 'http://api.193.122.213.155.nip.io/api',
+    );
 
     String baseUrl;
 
