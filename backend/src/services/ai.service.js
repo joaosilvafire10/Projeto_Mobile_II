@@ -120,9 +120,8 @@ IMPORTANTE:
 
         if (!finalCategoryId && (categoryName || ticketData.categoria)) {
           const searchCatName = categoryName || ticketData.categoria;
-          const categoryDb = await prisma.category.findFirst({
-            where: { name: { equals: searchCatName, mode: "insensitive" } }
-          });
+          const categories = await prisma.category.findMany();
+          const categoryDb = categories.find(c => c.name.toLowerCase() === searchCatName.toLowerCase());
           if (categoryDb) {
             finalCategoryId = categoryDb.id;
           }
@@ -130,12 +129,10 @@ IMPORTANTE:
 
         if (!finalActivityId && (activityName || ticketData.atividade) && finalCategoryId) {
           const searchActName = activityName || ticketData.atividade;
-          const activityDb = await prisma.activity.findFirst({
-            where: {
-              name: { equals: searchActName, mode: "insensitive" },
-              categoryId: finalCategoryId,
-            }
+          const activities = await prisma.activity.findMany({
+            where: { categoryId: finalCategoryId }
           });
+          const activityDb = activities.find(a => a.name.toLowerCase() === searchActName.toLowerCase());
           if (activityDb) {
             finalActivityId = activityDb.id;
           }
