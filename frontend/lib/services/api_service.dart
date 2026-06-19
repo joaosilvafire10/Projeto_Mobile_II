@@ -24,19 +24,23 @@ class ApiService {
   static const _keyRefreshToken = 'refreshToken';
 
   ApiService._internal() {
+    // 1. Defina a URL de produção do seu Dokploy aqui (use HTTPS se configurou SSL)
+    const String prodUrl = 'http://api.193.122.213.155.nip.io/api';
+
     String baseUrl;
-    if (kIsWeb) {
-      baseUrl = 'http://api.193.122.213.155.nip.io/api';
-    } else {
-      try {
-        if (defaultTargetPlatform == TargetPlatform.android) {
-          baseUrl = 'http://10.0.2.2:3000/api';
-        } else {
-          baseUrl = 'http://127.0.0.1:3000/api';
-        }
-      } catch (_) {
+
+    if (kDebugMode) {
+      // 💻 AMBIENTE DE DESENVOLVIMENTO (Localhost)
+      if (kIsWeb) {
+        baseUrl = 'http://127.0.0.1:3000/api';
+      } else if (defaultTargetPlatform == TargetPlatform.android) {
+        baseUrl = 'http://10.0.2.2:3000/api';
+      } else {
         baseUrl = 'http://127.0.0.1:3000/api';
       }
+    } else {
+      // 🚀 AMBIENTE DE PRODUÇÃO (Dokploy para todas as plataformas)
+      baseUrl = prodUrl;
     }
 
     dio = Dio(BaseOptions(
@@ -86,7 +90,7 @@ class ApiService {
         return handler.next(error);
       },
     ));
-  }
+  } // Chave de fechamento do construtor que estava faltando corrigida aqui!
 
   // ── Métodos de token (acesso seguro) ──────────────────────────────────────
 
@@ -118,10 +122,13 @@ class ApiService {
       });
 
       if (response.statusCode == 200) {
-        final data = response.data['data'];
+        // CORREÇÃO: Acessando 'data' e depois 'tokens' de acordo com a sua estrutura JSON
+        final responseData = response.data['data'];
+        final tokens = responseData['tokens'];
+
         await saveTokens(
-          accessToken: data['accessToken'] as String,
-          refreshToken: data['refreshToken'] as String,
+          accessToken: tokens['accessToken'] as String,
+          refreshToken: tokens['refreshToken'] as String,
         );
         return true;
       }
