@@ -143,6 +143,29 @@ frontend/
 backend/
 ├── src/
 ├── controllers/
+
+## Ambiente de Produção
+
+A aplicação encontra-se publicada em ambiente de produção através de uma VPS Oracle Cloud utilizando Docker e Dokploy para orquestração dos serviços.
+
+### Acesso ao Sistema
+
+Frontend:
+http://app.193.122.213.155.nip.io
+
+### Infraestrutura
+
+* Hospedagem em VPS Oracle Cloud;
+* Deploy automatizado via Dokploy;
+* Containers Docker para frontend e backend;
+* Banco de dados SQLite persistido em volume dedicado;
+* Integração contínua com repositório GitHub;
+* Proxy reverso e gerenciamento de domínios realizados pelo Dokploy.
+
+### Observação
+
+O endereço de produção poderá ser alterado futuramente para um domínio próprio, mantendo a mesma infraestrutura de hospedagem e deploy.
+
 ├── services/
 ├── repositories/
 ├── routes/
