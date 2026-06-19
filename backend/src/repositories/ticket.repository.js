@@ -5,6 +5,16 @@ class TicketRepository {
    * Cria um novo chamado.
    */
   async create(data) {
+    // Validar FKs para evitar crash caso venham IDs inexistentes do app
+    if (data.categoryId) {
+      const cat = await prisma.category.findUnique({ where: { id: data.categoryId } });
+      if (!cat) data.categoryId = null;
+    }
+    if (data.activityId) {
+      const act = await prisma.activity.findUnique({ where: { id: data.activityId } });
+      if (!act) data.activityId = null;
+    }
+
     return prisma.ticket.create({
       data,
       include: {
